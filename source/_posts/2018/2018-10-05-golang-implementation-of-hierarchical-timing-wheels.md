@@ -42,7 +42,7 @@ Golang 内置的 [Timer][1] 是采用最小堆来实现的，创建和删除的�
 
 以 u 为 1ms、n 为 3 的简单时间轮为例，可以包含的定时任务的最大到期间隔为 3ms。
 
-![simple-timing-wheel](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2018/files/2018-10-05-simple-timing-wheel_.png)
+![simple-timing-wheel](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2018/files/2018-10-05-simple-timing-wheel_.png)
 
 如上图所示，该简单时间轮的运行原理如下：
 
@@ -73,7 +73,7 @@ Golang 内置的 [Timer][1] 是采用最小堆来实现的，创建和删除的�
 
 以 u 为 1ms、n 为 3 的层级时间轮为例，第一层时间轮的时间单位为 1ms、大小为 3，第二层时间轮的时间单位为 3ms、大小为 3，以此类推。
 
-![hierarchical-timing-wheels](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2018/files/2018-10-05-hierarchical-timing-wheels_.png)
+![hierarchical-timing-wheels](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2018/files/2018-10-05-hierarchical-timing-wheels_.png)
 
 如上图所示，该层级时间轮的运行原理如下：
 
@@ -91,7 +91,7 @@ Golang 内置的 [Timer][1] 是采用最小堆来实现的，创建和删除的�
 
 ### 1. 时间轮表示
 
-![kafka-implementation-timing-wheel-representation](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2018/files/2018-10-05-kafka-implementation-timing-wheel-representation_.png)
+![kafka-implementation-timing-wheel-representation](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2018/files/2018-10-05-kafka-implementation-timing-wheel-representation_.png)
 
 如上图所示，在时间轮的表示上面：
 
@@ -104,7 +104,7 @@ Golang 内置的 [Timer][1] 是采用最小堆来实现的，创建和删除的�
 
 Kafka 的层级时间轮实现中，利用了 Java 内置的 [DelayQueue][9] 结构，将每一层时间轮中所有 “包含有定时任务的 bucket” 都加入到同一个 DelayQueue 中（参考 [源码][10]），然后 **等到有 bucket 到期后再驱动时钟往前走**（参考 [源码][11]），并逐个处理该 bucket 中的定时任务（参考 [源码][12]）。
 
-![kafka-implementation-clock-driving-method](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2018/files/2018-10-05-kafka-implementation-clock-driving-method_.png)
+![kafka-implementation-clock-driving-method](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2018/files/2018-10-05-kafka-implementation-clock-driving-method_.png)
 
 如上图所示：
 

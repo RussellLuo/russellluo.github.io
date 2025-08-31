@@ -21,13 +21,13 @@ title: Redis replication 揭秘
 
 一个 master 用于写，多个 slave 用于分摊读的压力。
 
-![redis-replication-scalability](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2018/files/redis-replication-scalability_.png)
+![redis-replication-scalability](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2018/files/redis-replication-scalability_.png)
 
 ### 2. 高可用
 
 如果 master 挂掉了，可以提升（promote）一个 slave 为新的 master，进而实现故障转移（failover）。
 
-![redis-replication-high-availability](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2018/files/redis-replication-high-availability_.png)
+![redis-replication-high-availability](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2018/files/redis-replication-high-availability_.png)
 
 **思考**：如果没有 replication，上述两个问题该如何应对？
 
@@ -264,7 +264,7 @@ PING
 
 #### 完整重同步
 
-![redis-replication-full-resync](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2018/files/redis-replication-full-resync_.png)
+![redis-replication-full-resync](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2018/files/redis-replication-full-resync_.png)
 
 说明：
 
@@ -281,7 +281,7 @@ PING
 
 #### 部分重同步
 
-![redis-replication-partial-resync](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2018/files/redis-replication-partial-resync_.png)
+![redis-replication-partial-resync](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2018/files/redis-replication-partial-resync_.png)
 
 说明：
 
@@ -313,7 +313,7 @@ master 会将最近接收到的写命令（按 [Redis 协议][6]的格式）保�
 
 「命令传播」用于在 master 的数据库状态被修改时，将导致变更的命令传播给 slave，从而让 slave 的数据库状态与 master 保持一致。
 
-![redis-replication-command-propagate](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2018/files/redis-replication-command-propagate_.png)
+![redis-replication-command-propagate](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2018/files/redis-replication-command-propagate_.png)
 
 说明：master 进行命令传播时，除了将写命令直接发送给所有 slave，还会将这些命令写入「复制积压缓冲区」，用于后续可能发生的「部分重同步」操作。
 

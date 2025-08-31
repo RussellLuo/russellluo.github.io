@@ -14,7 +14,7 @@ title: 图解 Go 新增的并发安全的字典 sync.Map
 
 以下是对 sync.Map 的 Load/Store/Delete 等常用操作的图解:
 
-![go-sync-map](https://raw.githubusercontent.com/RussellLuo/blog/master/blog/2017/go-sync-map_.png)
+![go-sync-map](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2017/go-sync-map_.png)
 
 
 [1]: https://github.com/golang/go/blob/master/src/sync/map.go
