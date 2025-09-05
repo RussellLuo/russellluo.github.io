@@ -1,8 +1,8 @@
 categories:
-- 技术
+- AI
 
 tags:
-- AI
+- Claude Code
 
 title: 轻松解锁Claude Code：国内用户的多元模型新玩法
 ---
