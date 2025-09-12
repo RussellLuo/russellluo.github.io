@@ -62,13 +62,13 @@ export https_proxy=http://127.0.0.1:8080
 
 随后，我们可以选择一个项目，打开Claude Code并输入`hi`：
 
-![claude-code-input-hi](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-input-hi.png)
+![claude-code-input-hi](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-input-hi.png)
 
 如果一切顺利，mitmweb将会捕获到相关的网络流量：
 
-![claude-code-hi-flows-request](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-hi-flows-request.png)
+![claude-code-hi-flows-request](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-hi-flows-request.png)
 
-![claude-code-hi-flows-response](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-hi-flows-response.png)
+![claude-code-hi-flows-response](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-hi-flows-response.png)
 
 至此，我们成功完成了对Claude Code的首次流量捕获！可以看到，这些流量包含了Claude Code与后端服务之间完整的HTTP请求和响应。在每一条数据流中，请求体包含了与提示词相关的输入信息，而响应体则包含了LLM生成的回答内容。
 
@@ -110,7 +110,7 @@ mitmproxy的[插件机制][4]基于事件驱动，其核心原理是：mitmproxy
 
 > 参考io-write-flow-file.py，编写一个mitmproxy脚本，用于将请求/响应对写入一行JSON Line
 
-![claude-code-jsonl-writer-prompt](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-jsonl-writer-prompt.png)
+![claude-code-jsonl-writer-prompt](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-jsonl-writer-prompt.png)
 
 生成后的`jsonl-writer.py`插件（[完整版](https://gist.github.com/RussellLuo/799ccc0164bcb485d4c94a15973dab8a#file-mitmproxy_jsonl_writer-py)）可以这样使用：
 
@@ -138,7 +138,7 @@ tail -f flows.jsonl
 > - 针对request数据，只提取system、messages和tools的内容，相关text和content字段包含多行文本，需要格式化输出
 > - 针对response数据，需要将sse拼接成完整的json对象，然后其中的text字段包含多行文本，也需要格式化输出
 
-![claude-code-jsonl-viewer-prompt](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-jsonl-viewer-prompt.png)
+![claude-code-jsonl-viewer-prompt](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-jsonl-viewer-prompt.png)
 
 生成后的`jsonl-viewer.py`脚本（[完整版](https://gist.github.com/RussellLuo/799ccc0164bcb485d4c94a15973dab8a#file-mitmproxy_jsonl_viewer-py)）可以用于解析`flows.jsonl`文件：
 
@@ -148,7 +148,7 @@ cat flows.jsonl | python jsonl-viewer.py | less
 
 解析后的输出结果如下：
 
-![claude-code-jsonl-viewer-output](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-jsonl-viewer-output.png)
+![claude-code-jsonl-viewer-output](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-jsonl-viewer-output.png)
 
 与原始的mitmweb界面相比，经过处理后的数据可读性有了显著提升：
 - 每条HTTP数据流独立呈现，请求和响应内容清晰分离

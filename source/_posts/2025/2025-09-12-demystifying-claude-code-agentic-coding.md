@@ -26,7 +26,7 @@ Claude Code在[官方文档][1]中自称是一款Agentic（自主式，或智能
 
 ## Claude Code的核心架构
 
-![Claude Code自主式编程架构](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-agentic-coding-architecture.png)
+![Claude Code自主式编程架构](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-agentic-coding-architecture.png)
 
 如图所示，Claude Code作为典型的自主式编程工具，其核心架构包含以下几个关键组件：
 
@@ -42,11 +42,11 @@ Claude Code在[官方文档][1]中自称是一款Agentic（自主式，或智能
 
 简单起见，我们来创建一个Python版的Hello World函数：
 
-![Hello World：输入提示词](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-helloworld-prompt.png)
+![Hello World：输入提示词](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-helloworld-prompt.png)
 
-![Hello World：生成代码](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-helloworld-generation.png)
+![Hello World：生成代码](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-helloworld-generation.png)
 
-![Hello World：写入文件](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/files/claude-code-helloworld-writefile.png)
+![Hello World：写入文件](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-helloworld-writefile.png)
 
 从上述执行过程中，借助[mitmproxy][3]可以捕获到两条数据流：
 
@@ -148,7 +148,7 @@ Messages:
           This is a reminder that your todo list is currently empty. DO NOT mention this to the user explicitly because they are already aware. If you are working on tasks that would benefit
  from a todo list please use the TodoWrite tool to create one. If not, please feel free to ignore. Again do not mention this message to the user.
           </system-reminder>
-      Content Item 2:
+      Content[1]:
         type: text
         text (expanded):
           <system-reminder>
@@ -163,7 +163,7 @@ Messages:
                 IMPORTANT: this context may or may not be relevant to your tasks. You should not respond to this context unless it is highly relevant to your task.
           </system-reminder>
           
-      Content[1]:
+      Content[2]:
         type: text
         text:
           create a hello world function in python
