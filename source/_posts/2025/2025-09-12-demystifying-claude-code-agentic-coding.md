@@ -61,7 +61,6 @@ System:
   System[0]:
     type: text
     text: You are Claude Code, Anthropic's official CLI for Claude.
-    cache_control: {'type': 'ephemeral'}
   System[1]:
     type: text
     text: 
@@ -96,7 +95,6 @@ Messages:
           
       Content[2]:
         type: text
-        cache_control: {'type': 'ephemeral'}
         text:
           create a hello world function in python
 Tools:
@@ -150,7 +148,7 @@ Messages:
           </system-reminder>
       Content[1]:
         type: text
-        text (expanded):
+        text:
           <system-reminder>
           As you answer the user's questions, you can use the following context:
           # important-instruction-reminders
@@ -179,7 +177,6 @@ Messages:
         id: toolu_bdrk_01Tv5P8iPpKfvXkD7jGmjLFr
         name: Write
         input: {'file_path': '/Users/russellluo/Projects/demo/hello_world.py', 'content': 'def hello_world():\n    print("Hello, World!")\n\nif __name__ == "__main__":\n    hello_world()'}
-        cache_control: {'type': 'ephemeral'}
   Message[2]:
     role: user
     content:
@@ -187,7 +184,6 @@ Messages:
         tool_use_id: toolu_bdrk_01Tv5P8iPpKfvXkD7jGmjLFr
         type: tool_result
         content: File created successfully at: /Users/russellluo/Projects/demo/hello_world.py
-        cache_control: {'type': 'ephemeral'}
 Tools:
 ...
 
@@ -204,7 +200,7 @@ Tools:
 1.  **清晰的“思考-行动-观察”循环**
 
     - **思考与行动（FLOW #1）**：这是循环的起点。LLM接收系统上下文和用户指令（`create a hello world function in python`）后，经过内部推理，**决定采取行动**——使用`Write`工具，它生成了完整的代码内容并指定了文件路径。
-    - **观察与完成（FLOW #2）**：这是循环的下一步。经用户确认后，`Write`工具被执行，系统于是接收到了执行结果（`File created successfully at...`）。LLM“观察”到这个反馈后，判定任务已成功完成，于是**决定结束循环**，并生成最终响应给用户（`Created 'hello_world.py' with a simple hello world function.`）。
+    - **观察与完成（FLOW #2）**：这是循环的下一步。经用户确认后，`Write`工具被执行，系统于是接收到了执行结果（`File created successfully at...`）。LLM观察到这个反馈后，判定任务已成功完成，于是**决定结束循环**，并生成最终响应给用户（`Created 'hello_world.py' with a simple hello world function.`）。
 
 2.  **工具使用的链式依赖**
 
