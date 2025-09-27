@@ -112,7 +112,7 @@ mitmproxy的[插件机制][4]基于事件驱动，其核心原理是：mitmproxy
 
 ![claude-code-jsonl-writer-prompt](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-jsonl-writer-prompt.png)
 
-生成后的`jsonl-writer.py`插件（[完整版](https://gist.github.com/RussellLuo/799ccc0164bcb485d4c94a15973dab8a#file-mitmproxy_jsonl_writer-py)）可以这样使用：
+生成后的`jsonl-writer.py`插件（[完整版](https://github.com/RussellLuo/russellluo.github.io/blob/main/source/_posts/2025/code/mitmproxy_jsonl_writer.py)）可以这样使用：
 
 ```bash
 mitmweb -s jsonl-writer.py
@@ -140,7 +140,7 @@ tail -f flows.jsonl
 
 ![claude-code-jsonl-viewer-prompt](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-jsonl-viewer-prompt.png)
 
-生成后的`jsonl-viewer.py`脚本（[完整版](https://gist.github.com/RussellLuo/799ccc0164bcb485d4c94a15973dab8a#file-mitmproxy_jsonl_viewer-py)）可以用于解析`flows.jsonl`文件：
+生成后的`jsonl-viewer.py`脚本（[完整版](https://github.com/RussellLuo/russellluo.github.io/blob/main/source/_posts/2025/code/mitmproxy_jsonl_viewer.py)）可以用于解析`flows.jsonl`文件：
 
 ```bash
 cat flows.jsonl | python jsonl-viewer.py | less
