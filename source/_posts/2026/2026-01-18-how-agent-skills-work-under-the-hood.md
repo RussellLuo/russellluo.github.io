@@ -35,7 +35,7 @@ Assistant: The weather in Chengdu is Sunny with a temperature of 22°C.
 
 ![Claude Code自主式编程架构](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2025/images/claude-code-agentic-coding-architecture.png)
 
-可以看出，Claude Code与常规Agent（如天气查询助手）最大的不同之处在于：它工作在操作系统之上，几乎所有的工具都是围绕**文件系统和Shell命令**展开的！
+可以看出，Claude Code与常规Agent（如天气查询助手）最大的不同之处在于：它工作在操作系统之上，几乎所有的工具都是围绕**文件系统和Shell命令**构建而成！
 
 以“查看文件并创建一个Hello World函数”为例，Claude Code运行过程中的Context大致如下：
 
@@ -127,12 +127,12 @@ Assistant: I've generated a simple blog frontend UI based on the guidelines.
 
 至此我们可以看出，Skills的核心思想，其实也遵循了Context Offloading的上下文管理策略。当然，上述例子只是最基础的实现。
 
-![Agent Skills架构](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2026/images/agent-skills-context-window.png)
+![Agent Skills上下文窗口](https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2026/images/agent-skills-context-window.png)
 
 在Anthropic的设计中，又巧妙地引入了Skills的三层加载技术，以求最大化减少LLM上下文的负担：
 
 1. **元数据（Metadata）**：可用Skills的名称、描述及其文件路径。这些信息会被预先放到上下文（系统提示词）中，以确保Agent知道有哪些Skills可以利用。
-2. **指令（Instructions）**：每个Skill都有一个对应的`SKILL.md`文件，其中包含了Skill的详细描述、使用方法和示例等信息。当Agent需要某个Skill的帮助时，它会通过`Read`工具读取`SKILL.md`s文件的内容，进而将其动态加载到上下文中。
+2. **指令（Instructions）**：每个Skill都有一个对应的`SKILL.md`文件，其中包含了Skill的详细描述、使用方法和示例等信息。当Agent需要某个Skill的帮助时，它会通过`Read`工具读取`SKILL.md`文件的内容，进而将其动态加载到上下文中。
 3. **资源（Resources）**：除了`SKILL.md`文件，每个Skill还可以包含其他类型的资源文件，如配置文件、文档等。当Agent需要更具体的信息时，它会进一步读取这些资源文件的内容，从而将其加载到上下文中。
 
 ## 代码执行与虚拟机
