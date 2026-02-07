@@ -149,7 +149,6 @@ print(response.output_parsed)
 
 由上述分析可见，Function Calling的核心在于**由LLM灵活决定是否调用工具、调用哪个工具**。仍然以天气查询为例，如果我们将思维模式从“结构化输出”转变为“工具调用”，整体的解题路径就会截然不同。
 
-<img alt="Function Calling" src="/images/openai-function-calling-steps.png" width="500" height="800" />
 <img alt="Function Calling" src="https://raw.githubusercontent.com/RussellLuo/russellluo.github.io/main/source/_posts/2026/images/openai-function-calling-steps.png" width="500" height="800" />
 
 如图所示，使用Function Calling来处理天气查询，整体的流程大致如下：
@@ -305,7 +304,7 @@ print(result["messages"][-1].content)
 
 本文从实际应用场景出发，梳理了从传统NLU到Prompt Engineering，再到Structured Output和Function Calling的技术演进脉络，并对比了后两者在功能定位上的差异。最后，介绍了如何通过框架封装来简化Function Calling的开发流程。
 
-在Claude Code、OpenClaw等智能体日益盛行的今天，Function Calling作为LLM的核心能力，已成为其重要的技术基石。随着这项技术的广泛应用，工具生态的开放性与标准化也愈发关键。在此背景下，MCP（模型上下文协议）已逐渐成为行业的事实标准，我们将在后续的文章中继续探讨这一话题。
+在Claude Code、OpenClaw等智能体日益盛行的当下，Function Calling作为LLM的核心能力，已成为其重要的技术基石。随着这项技术的广泛应用，工具生态的开放性与标准化也愈发关键。在此背景下，MCP（模型上下文协议）已逐渐成为行业的事实标准，我们将在后续的文章中继续探讨这一话题。
 
 
 [1]: https://platform.openai.com/docs/guides/function-calling
