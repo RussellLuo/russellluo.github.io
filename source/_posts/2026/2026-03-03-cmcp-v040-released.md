@@ -2,7 +2,7 @@ categories:
 - AI
 
 tags:
-- AI必知必会
+- MCP
 
 title: cMCP v0.4.0发布：用配置文件管理你的MCP服务器
 ---
