@@ -351,16 +351,17 @@ There is a {project_root}/NOTES.md file that records the progress of the task:
 
 由上可见：
 
-- 因为每个Skill都在不同的会话中被调用，所以它们之间也不会共享上下文，从而避免了上下文膨胀的问题。
+- 因为每个Skill都在不同的会话中被调用，所以它们之间不会共享上下文，从而避免了上下文膨胀的问题。
 - 每个Skill都通过`NOTES.md`文件来读取和记录关键进度，从而实现了跨Skill（跨会话）的信息传递，保证了整体任务的连贯性。
 
 值得说明的是，这个技巧的本质是**基于独立会话的多Agent协作**。这里不同的Skill，实际上只是给每个Agent添加了不同的知识，使其能够执行特定的任务。
 
 关于多Agent协作完成复杂任务的更多内容，Anthropic在另一篇文章[Effective harnesses for long-running agents][4]作了详细介绍，感兴趣的读者可以进一步阅读。
 
-# 结语
+## 结语
 
 Skills是一种强大的能力封装方式，但面对长程任务时，它并不是解决一切问题的银弹——LLM的上下文限制始终是绕不过去的瓶颈。
+
 更实用的思路是将Skills与上下文工程结合起来：
 
 - 通过 Subagents 拆分上下文，让不同角色各自处理独立子任务；
