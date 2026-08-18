@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="420" viewBox="0 0 1600 420" role="img" aria-labelledby="title desc">
+  <title id="title">LLM 将输入 How are 续写为 you doing?</title>
+  <desc id="desc">从整体视角展示输入文本 How are 经过 LLM 后，输出文本 you doing?，不展开内部生成过程。</desc>
+
+  <defs>
+    <linearGradient id="output-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f73ee" />
+      <stop offset="1" stop-color="#075bd7" />
+    </linearGradient>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .input-box {
+        fill: #f7faff;
+        stroke: #2468df;
+        stroke-width: 2.5;
+      }
+      .input-label {
+        font-size: 32px;
+        font-weight: 700;
+        fill: #171717;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .input-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 20px;
+        font-weight: 600;
+        fill: #666666;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .llm-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .llm-title {
+        font-size: 46px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .output-box {
+        fill: url(#output-fill);
+        stroke: #075bd7;
+        stroke-width: 2;
+      }
+      .output-label {
+        font-size: 32px;
+        font-weight: 700;
+        fill: #ffffff;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .output-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 20px;
+        font-weight: 600;
+        fill: #dceaff;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .arrow {
+        fill: none;
+        stroke: #1f1f1f;
+        stroke-width: 5;
+        stroke-linecap: square;
+      }
+      .arrowhead {
+        fill: #1f1f1f;
+      }
+    </style>
+  </defs>
+
+  <rect width="1600" height="420" fill="#fcfcfb" />
+
+  <!-- Overall input text. -->
+  <rect class="input-box" x="100" y="145" width="360" height="130" rx="16" />
+  <text class="ui-text input-label" x="280" y="205">输入文本</text>
+  <text class="input-text" x="280" y="250">How are</text>
+
+  <!-- Input to LLM. -->
+  <path class="arrow" d="M 500 210 H 628" />
+  <polygon class="arrowhead" points="628,199 650,210 628,221" />
+
+  <!-- LLM is intentionally kept as a black box here. -->
+  <rect class="llm-box" x="670" y="125" width="260" height="170" rx="16" />
+  <text class="ui-text llm-title" x="800" y="210">LLM</text>
+
+  <!-- Overall output text. -->
+  <path class="arrow" d="M 970 210 H 1098" />
+  <polygon class="arrowhead" points="1098,199 1120,210 1098,221" />
+
+  <rect class="output-box" x="1140" y="145" width="360" height="130" rx="16" />
+  <text class="ui-text output-label" x="1320" y="205">输出文本</text>
+  <text class="output-text" x="1320" y="250">you doing?</text>
+</svg>

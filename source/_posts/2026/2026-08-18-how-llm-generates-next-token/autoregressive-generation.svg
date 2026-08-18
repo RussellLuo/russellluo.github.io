@@ -1,0 +1,157 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="760" viewBox="0 0 1600 760" role="img" aria-labelledby="title desc">
+  <title id="title">How are 示例展示 LLM 自回归生成 Token 的三轮过程</title>
+  <desc id="desc">三轮输入 Token 序列依次经过 LLM，每轮输出一个新 Token，并将新 Token 追加为下一轮输入。</desc>
+
+  <defs>
+    <linearGradient id="output-fill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1f73ee" />
+      <stop offset="1" stop-color="#075bd7" />
+    </linearGradient>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .column-label {
+        font-size: 36px;
+        font-weight: 700;
+      }
+      .round-label {
+        font-size: 38px;
+        font-weight: 700;
+      }
+      .token-box {
+        fill: #f7faff;
+        stroke: #2468df;
+        stroke-width: 2.5;
+      }
+      .token-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 25px;
+        font-weight: 600;
+        fill: #171717;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .llm-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .llm-text {
+        font-size: 43px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .output-box {
+        fill: url(#output-fill);
+        stroke: #075bd7;
+        stroke-width: 2;
+      }
+      .output-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 34px;
+        font-weight: 600;
+        fill: #ffffff;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .arrow-black {
+        fill: none;
+        stroke: #1f1f1f;
+        stroke-width: 5;
+        stroke-linecap: square;
+      }
+      .feedback {
+        fill: none;
+        stroke: #1464df;
+        stroke-width: 5;
+        stroke-linejoin: round;
+        stroke-linecap: square;
+      }
+      .arrowhead-black {
+        fill: #1f1f1f;
+      }
+      .arrowhead-blue {
+        fill: #1464df;
+      }
+    </style>
+  </defs>
+
+  <rect width="1600" height="760" fill="#fcfcfb" />
+
+  <text class="ui-text column-label" x="330" y="112">已有 Token 序列</text>
+  <text class="ui-text column-label" x="1410" y="112" text-anchor="middle">输出 Token</text>
+
+  <!-- Feedback paths are drawn behind the boxes. -->
+  <path class="feedback" d="M 1410 268 V 324 H 692 V 358" />
+  <polygon class="arrowhead-blue" points="682,358 702,358 692,378" />
+  <path class="feedback" d="M 1410 478 V 534 H 840 V 568" />
+  <polygon class="arrowhead-blue" points="830,568 850,568 840,588" />
+
+  <!-- Round 1 arrows -->
+  <path class="arrow-black" d="M 630 220 H 960" />
+  <polygon class="arrowhead-black" points="960,210 980,220 960,230" />
+  <path class="arrow-black" d="M 1205 220 H 1265" />
+  <polygon class="arrowhead-black" points="1265,210 1285,220 1265,230" />
+
+  <!-- Round 2 arrows -->
+  <path class="arrow-black" d="M 778 430 H 960" />
+  <polygon class="arrowhead-black" points="960,420 980,430 960,440" />
+  <path class="arrow-black" d="M 1205 430 H 1265" />
+  <polygon class="arrowhead-black" points="1265,420 1285,430 1265,440" />
+
+  <!-- Round 3 arrows -->
+  <path class="arrow-black" d="M 926 640 H 960" />
+  <polygon class="arrowhead-black" points="960,630 980,640 960,650" />
+  <path class="arrow-black" d="M 1205 640 H 1265" />
+  <polygon class="arrowhead-black" points="1265,630 1285,640 1265,650" />
+
+  <!-- Round labels -->
+  <text class="ui-text round-label" x="65" y="233">第 1 轮</text>
+  <text class="ui-text round-label" x="65" y="443">第 2 轮</text>
+  <text class="ui-text round-label" x="65" y="653">第 3 轮</text>
+
+  <!-- Input Token grid: x = 330, 478, 626, 774; every box is 132 × 94. -->
+  <!-- Round 1 -->
+  <rect class="token-box" x="330" y="173" width="132" height="94" rx="12" />
+  <text class="token-text" x="396" y="220" xml:space="preserve">&quot;How&quot;</text>
+  <rect class="token-box" x="478" y="173" width="132" height="94" rx="12" />
+  <text class="token-text" x="544" y="220" xml:space="preserve">&quot; are&quot;</text>
+
+  <!-- Round 2 -->
+  <rect class="token-box" x="330" y="383" width="132" height="94" rx="12" />
+  <text class="token-text" x="396" y="430" xml:space="preserve">&quot;How&quot;</text>
+  <rect class="token-box" x="478" y="383" width="132" height="94" rx="12" />
+  <text class="token-text" x="544" y="430" xml:space="preserve">&quot; are&quot;</text>
+  <rect class="token-box" x="626" y="383" width="132" height="94" rx="12" />
+  <text class="token-text" x="692" y="430" xml:space="preserve">&quot; you&quot;</text>
+
+  <!-- Round 3 -->
+  <rect class="token-box" x="330" y="593" width="132" height="94" rx="12" />
+  <text class="token-text" x="396" y="640" xml:space="preserve">&quot;How&quot;</text>
+  <rect class="token-box" x="478" y="593" width="132" height="94" rx="12" />
+  <text class="token-text" x="544" y="640" xml:space="preserve">&quot; are&quot;</text>
+  <rect class="token-box" x="626" y="593" width="132" height="94" rx="12" />
+  <text class="token-text" x="692" y="640" xml:space="preserve">&quot; you&quot;</text>
+  <rect class="token-box" x="774" y="593" width="132" height="94" rx="12" />
+  <text class="token-text" x="840" y="640" xml:space="preserve">&quot; doing&quot;</text>
+
+  <!-- LLM column -->
+  <rect class="llm-box" x="995" y="165" width="190" height="110" rx="14" />
+  <text class="ui-text llm-text" x="1090" y="220">LLM</text>
+  <rect class="llm-box" x="995" y="375" width="190" height="110" rx="14" />
+  <text class="ui-text llm-text" x="1090" y="430">LLM</text>
+  <rect class="llm-box" x="995" y="585" width="190" height="110" rx="14" />
+  <text class="ui-text llm-text" x="1090" y="640">LLM</text>
+
+  <!-- Output Token column -->
+  <rect class="output-box" x="1300" y="172" width="220" height="96" rx="14" />
+  <text class="output-text" x="1410" y="220" xml:space="preserve">&quot; you&quot;</text>
+  <rect class="output-box" x="1300" y="382" width="220" height="96" rx="14" />
+  <text class="output-text" x="1410" y="430" xml:space="preserve">&quot; doing&quot;</text>
+  <rect class="output-box" x="1300" y="592" width="220" height="96" rx="14" />
+  <text class="output-text" x="1410" y="640">&quot;?&quot;</text>
+
+</svg>

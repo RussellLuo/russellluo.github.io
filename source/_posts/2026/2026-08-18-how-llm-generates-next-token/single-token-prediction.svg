@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="430" viewBox="0 0 1600 430" role="img" aria-labelledby="title desc">
+  <title id="title">从 How are 到下一个 Token you 的生成过程</title>
+  <desc id="desc">以分词、GPT-2、采样和反分词为四个主要步骤，展示输入文本 How are 如何转换为输出 Token you。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .process-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .process-title {
+        font-size: 30px;
+        font-weight: 700;
+        fill: #171717;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .process-subtitle {
+        font-size: 19px;
+        font-weight: 600;
+        fill: #666666;
+        text-anchor: middle;
+      }
+      .model-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .model-title {
+        font-size: 42px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .data-label {
+        font-size: 18px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 16px;
+        font-weight: 600;
+        fill: #666666;
+        text-anchor: middle;
+      }
+      .output-data {
+        fill: #075bd7;
+      }
+      .arrow {
+        fill: none;
+        stroke: #1f1f1f;
+        stroke-width: 4.5;
+        stroke-linecap: square;
+      }
+      .arrowhead {
+        fill: #1f1f1f;
+      }
+    </style>
+  </defs>
+
+  <rect width="1600" height="430" fill="#fcfcfb" />
+
+  <!-- Four processing steps. -->
+  <rect class="process-box" x="160" y="140" width="200" height="170" rx="16" />
+  <text class="ui-text process-title" x="260" y="210">分词</text>
+  <text class="ui-text process-subtitle" x="260" y="255">Tokenize</text>
+
+  <rect class="model-box" x="530" y="125" width="180" height="200" rx="16" />
+  <text class="ui-text model-title" x="620" y="225">GPT-2</text>
+
+  <rect class="process-box" x="880" y="140" width="200" height="170" rx="16" />
+  <text class="ui-text process-title" x="980" y="210">采样</text>
+  <text class="ui-text process-subtitle" x="980" y="255">Sampling</text>
+
+  <rect class="process-box" x="1250" y="140" width="200" height="170" rx="16" />
+  <text class="ui-text process-title" x="1350" y="210">反分词</text>
+  <text class="ui-text process-subtitle" x="1350" y="255">Detokenize</text>
+
+  <!-- Data flowing into, between, and out of the steps. -->
+  <text class="ui-text data-label" x="75" y="182">输入文本</text>
+  <text class="data-value" x="75" y="272">How are</text>
+  <path class="arrow" d="M 100 225 H 138" />
+  <polygon class="arrowhead" points="138,214 158,225 138,236" />
+
+  <text class="ui-text data-label" x="445" y="182">Token ID 序列</text>
+  <text class="data-value" x="445" y="272">[2437, 389]</text>
+  <path class="arrow" d="M 380 225 H 508" />
+  <polygon class="arrowhead" points="508,214 528,225 508,236" />
+
+  <text class="ui-text data-label" x="795" y="182">候选分数</text>
+  <text class="data-value" x="795" y="272">50257 个 logits</text>
+  <path class="arrow" d="M 730 225 H 858" />
+  <polygon class="arrowhead" points="858,214 878,225 858,236" />
+
+  <text class="ui-text data-label" x="1165" y="182">下一个 Token ID</text>
+  <text class="data-value" x="1165" y="272">345</text>
+  <path class="arrow" d="M 1100 225 H 1228" />
+  <polygon class="arrowhead" points="1228,214 1248,225 1228,236" />
+
+  <text class="ui-text data-label output-data" x="1530" y="182">输出 Token</text>
+  <text class="data-value output-data" x="1530" y="272" xml:space="preserve">&quot; you&quot;</text>
+  <path class="arrow" d="M 1470 225 H 1508" />
+  <polygon class="arrowhead" points="1508,214 1528,225 1508,236" />
+</svg>
