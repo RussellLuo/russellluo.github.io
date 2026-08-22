@@ -12,7 +12,7 @@ title: 从零学大模型：文本如何变成 Token ID？
 
 在上一篇[《LLM 如何逐个生成 Token？》](/2026/08/how-llm-generates-next-token)中，`How are` 经过分词后得到 Token ID 序列 `[2437, 389]`。那么，Tokenizer（分词器）是如何完成这一步的？
 
-本文先介绍 Token、Token ID 和词表，再说明文本与 Token ID 如何相互转换，最后用 llama.cpp 查看真实的 Token、词表和合并规则。
+本文先介绍 Token、Token ID 和词表，再说明文本与 Token ID 如何相互转换，最后用 llama.cpp 查看真实的 Token、预切分规则、词表和合并规则。
 
 ## Token、Token ID 与词表
 
@@ -78,7 +78,15 @@ BPE 是 Byte Pair Encoding（字节对编码）的缩写。GPT-2 使用 Byte-lev
 
 ### 预切分
 
-Tokenizer 先用一组规则把输入划分为较小的片段。GPT-2 会把前导空格与后面的字母放在同一片段中：
+Tokenizer 先用一条固定的文本匹配规则（正则表达式）扫描输入，将内容大致划分为：
+
+- 连续的字母，包括汉字等 Unicode 字母
+- 连续的数字
+- 连续的标点或其他符号
+- 连续的空白
+- 常见的英文缩写后缀，如 `'s`、`'t`、`'re`
+
+其中，字母、数字或符号片段可以带上紧邻其前的一个普通空格。例如：
 
 ```text
 How are
@@ -88,7 +96,7 @@ How are
 
 这也是 `"are"` 和 `" are"` 可能得到不同 Token ID 的原因。在当前词表中，不带空格的 `"are"` 是 Token ID `533`，带空格的 `" are"` 则是 Token ID `389`。
 
-预切分还会单独处理数字、标点和空白，但它并不直接决定最终 Token。
+预切分只负责划分片段，并不直接决定最终 Token。
 
 ### 字节级映射
 
@@ -108,7 +116,8 @@ GPT-2 先把每个片段表示为 UTF-8 字节，再通过一张可逆映射将�
 这种设计让 GPT-2 可以从字节层面表示不同语言和符号，而不必为每个 Unicode 字符准备一个基础 Token。代价是一个非 ASCII 字符可能被拆到多个 Token 中，单个 Token 文本片段不一定能独立解码成完整的 Unicode 字符。
 
 > **为什么还需要预切分？**
-> 两者的职责不同：预切分规定 BPE 的处理边界，字节级映射只改变片段内部的表示。BPE 会分别处理 `"How"` 和 `" are"`，不会跨片段合并。
+>
+> 预切分先确定哪些内容属于同一个 BPE 处理片段；字节级映射则只负责把片段转换成可逆的字符表示，不会重新划分片段。对于 `How are`，BPE 会分别在 `"How"` 和 `" are"` 内部尝试合并，不能跨越两个片段的边界。
 
 ### BPE 合并
 
@@ -144,9 +153,9 @@ BPE 合并结束后，Tokenizer 用每个 Token 查询前面介绍的词表：`H
 
 GPT-2 的词表与合并规则是配套生成的，因此 BPE 合并结果能够在词表中找到。
 
-> **说明：**
+> **词表和合并规则从哪里来？**
 >
-> 词表和合并规则在 Tokenizer 训练阶段确定，后续编码文本时保持不变；它们不是 GPT-2 用于模型计算的神经网络权重。
+> 词表和合并规则在 Tokenizer 训练阶段根据训练语料确定，后续编码文本时保持不变。它们是 Tokenizer 的数据，不是 GPT-2 用于模型计算的神经网络权重。
 
 ## 反分词
 
@@ -154,7 +163,7 @@ GPT-2 的词表与合并规则是配套生成的，因此 BPE 合并结果能够
 
 ![Token ID 345、1804 和 30 还原为 you doing?](detokenization.svg)
 
-`Ġyou` 中的 `Ġ` 会还原成前导空格，因此反分词结果是 `" you doing?"`。它与原输入拼接后，得到完整文本 `"How are you doing?"`。
+`Ġyou` 和 `Ġdoing` 中的 `Ġ` 都会还原成前导空格，而 `?` 不带前导空格。因此，这三个 Token 依次拼接后的反分词结果是 `" you doing?"`。它与原输入拼接后，得到完整文本 `"How are you doing?"`。
 
 这个过程不会倒着执行 BPE 合并规则，只需根据 ID 查回 Token 文本片段，再逆转字节级映射并拼接结果。
 
@@ -162,7 +171,7 @@ GPT-2 的词表与合并规则是配套生成的，因此 BPE 合并结果能够
 
 ## llama.cpp 实战
 
-下面使用 llama.cpp `b10435` 和 GPT-2 Q8_0 模型，验证 `How are → [2437, 389]`，并查看 GGUF 中真实的词表与 BPE 合并规则。基础环境准备见[《LLM 如何逐个生成 Token？》](/2026/08/how-llm-generates-next-token/#环境准备)。
+下面使用 llama.cpp `b10435` 和 GPT-2 Q8_0 模型，验证 `How are → [2437, 389]`，查看 GPT-2 的预切分规则，以及 GGUF 中真实的词表与 BPE 合并规则。基础环境准备见[《LLM 如何逐个生成 Token？》](/2026/08/how-llm-generates-next-token/#环境准备)。
 
 进入 llama.cpp 目录，设置模型路径，并构建本篇使用的工具：
 
@@ -221,6 +230,23 @@ cmake --build build \
 
 `llama-tokenize` 默认启用 `--escape`，会解析 `\n` 等转义序列。把输入文本改成 `'How\nare'`，可以观察到换行对应 Token ID `198`，换行后的 `"are"` 对应 ID `533`，而不是带前导空格的 `389`。
 
+### 查看 GPT-2 的预切分规则
+
+`llama-tokenize` 展示的是经过全部分词步骤得到的最终 Token，不会直接输出预切分产生的中间片段。要查看 GPT-2 使用的具体预切分规则，可以检查 llama.cpp 源码：
+
+```bash
+rg -n -A 1 'GPT2 system regex' src/unicode.cpp
+```
+
+输出：
+
+```text
+214:// GPT2 system regex:  's|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+
+215-static std::vector<size_t> unicode_regex_split_custom_gpt2(const std::string & text, const std::vector<size_t> & offsets) {
+```
+
+其中，`\p{L}`、`\p{N}` 和 `[^\s\p{L}\p{N}]` 分别匹配字母、数字和其他符号；前面的 ` ?` 表示可以带上一个普通空格，其他分支用于匹配英文缩写后缀和空白。这与前面“预切分”小节概括的规则一致。
+
 ### 查看 GGUF 中的 Tokenizer 数据
 
 `gguf-dump` 位于 llama.cpp 的 `gguf-py` 包中。如果当前环境里还没有这个工具，可以安装到仓库内的 Python 虚拟环境：
@@ -247,6 +273,8 @@ python3 -m venv .venv
      18: UINT32     |        1 | tokenizer.ggml.bos_token_id = 50256
      19: UINT32     |        1 | tokenizer.ggml.eos_token_id = 50256
 ```
+
+`tokenizer.ggml.pre = 'gpt-2'` 表示当前模型选择了上一节查看的 GPT-2 预切分方式。
 
 `tokenizer.ggml.tokens` 就是词表。它有 50257 个元素，数组下标范围是 `0～50256`；`tokenizer.ggml.merges` 则按 rank 顺序保存 50000 条 BPE 合并规则。
 
