@@ -25,7 +25,9 @@ Embedding 只完成了输入表示的初始化。真正结合上下文、逐层�
 1. Self-Attention（自注意力），结合可见的上下文更新每个位置的表示。
 2. MLP（多层感知机），分别更新每个位置的表示。
 
-> **说明：** GPT-2 中的 Self-Attention 具体为 Causal Self-Attention（因果自注意力），每个位置只能读取自身及它之前的位置，不能读取后续位置。
+> **GPT-2 使用 Causal Self-Attention（因果自注意力）**
+>
+> 这里的 `Causal` 表示每个位置只能读取自身和此前的位置，不能读取后续位置。
 
 Self-Attention 和 MLP 都采用 Pre-Norm 和 Residual Connection（残差连接），完整数据流如下：
 
