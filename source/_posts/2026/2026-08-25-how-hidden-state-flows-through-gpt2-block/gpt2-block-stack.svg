@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="720" viewBox="0 0 900 720" role="img" aria-labelledby="title desc">
+  <title id="title">GPT-2 Small 中 12 个 Block 的层间数据流</title>
+  <desc id="desc">Initial Hidden State（初始隐藏状态）X_0 依次流过 Block 0、Block 1、虚线框表示的 Block 2 到 Block 10，以及 Block 11，得到输出 Hidden State X_12。每个 Block 的输出都是下一个 Block 的输入，Hidden State 的逻辑 shape 始终保持为 T 乘 D。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+      .block-box {
+        fill: #eaf3ff;
+        stroke: #075bd7;
+        stroke-width: 3;
+      }
+      .omitted-box {
+        fill: #f7f7f5;
+        stroke: #888888;
+        stroke-width: 2.5;
+        stroke-dasharray: 9 8;
+      }
+      .block-title {
+        font-size: 20px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .data-label {
+        font-size: 15px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-size: 18px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .output-value {
+        fill: #075bd7;
+      }
+      .flow-arrow {
+        fill: none;
+        stroke: #202020;
+        stroke-width: 3.5;
+        stroke-linecap: square;
+      }
+      .arrowhead {
+        fill: #202020;
+      }
+    </style>
+  </defs>
+
+  <rect width="900" height="720" fill="#fcfcfb" />
+
+  <g transform="translate(100 0)">
+
+  <text class="ui-text data-label" x="350" y="22">Initial Hidden State</text>
+  <text class="mono-text data-value" x="350" y="46">X_0 [T,D]</text>
+
+  <path class="flow-arrow" d="M 350 58 V 66" />
+  <polygon class="arrowhead" points="342,66 358,66 350,78" />
+
+  <rect class="block-box" x="240" y="86" width="220" height="54" rx="12" />
+  <text class="ui-text block-title" x="350" y="120">Block 0</text>
+
+  <path class="flow-arrow" d="M 350 148 V 160" />
+  <polygon class="arrowhead" points="342,160 358,160 350,173" />
+  <text class="mono-text data-value" x="350" y="198">X_1 [T,D]</text>
+
+  <path class="flow-arrow" d="M 350 211 V 222" />
+  <polygon class="arrowhead" points="342,222 358,222 350,235" />
+
+  <rect class="block-box" x="240" y="243" width="220" height="54" rx="12" />
+  <text class="ui-text block-title" x="350" y="277">Block 1</text>
+
+  <path class="flow-arrow" d="M 350 305 V 317" />
+  <polygon class="arrowhead" points="342,317 358,317 350,330" />
+  <text class="mono-text data-value" x="350" y="355">X_2 [T,D]</text>
+
+  <path class="flow-arrow" d="M 350 368 V 379" />
+  <polygon class="arrowhead" points="342,379 358,379 350,392" />
+
+  <rect class="omitted-box" x="240" y="400" width="220" height="54" rx="12" />
+  <text class="ui-text block-title" x="350" y="434">Block 2–10</text>
+
+  <path class="flow-arrow" d="M 350 466 V 478" />
+  <polygon class="arrowhead" points="342,478 358,478 350,491" />
+  <text class="mono-text data-value" x="350" y="516">X_11 [T,D]</text>
+
+  <path class="flow-arrow" d="M 350 529 V 540" />
+  <polygon class="arrowhead" points="342,540 358,540 350,553" />
+
+  <rect class="block-box" x="240" y="561" width="220" height="54" rx="12" />
+  <text class="ui-text block-title" x="350" y="595">Block 11</text>
+
+  <path class="flow-arrow" d="M 350 623 V 635" />
+  <polygon class="arrowhead" points="342,635 358,635 350,648" />
+
+  <text class="ui-text data-label" x="350" y="672">输出 Hidden State</text>
+  <text class="mono-text data-value output-value" x="350" y="696">X_12 [T,D]</text>
+  </g>
+
+</svg>

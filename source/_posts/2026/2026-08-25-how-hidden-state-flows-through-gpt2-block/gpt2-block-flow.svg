@@ -1,0 +1,173 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="905" viewBox="0 0 900 905" role="img" aria-labelledby="title desc">
+  <title id="title">Hidden State 流过一个 GPT-2 Block</title>
+  <desc id="desc">浅灰色边界表示一个完整的 GPT-2 Block，输入 Hidden State X_l 位于边界上方，输出 Hidden State X_(l+1) 位于边界下方。边界内部从上到下分为 Attention 和 MLP 两个阶段，黑色主计算路径上的两个子层输出分别标为 Attention 更新 A_l [T,D] 和 MLP 更新 M_l [T,D]。无方框的标签与等宽数值表示 Hidden State 数据，白色小圆角框表示计算动作，小圆形表示逐元素相加。两条蓝色 Residual 旁路分别保留两个子层的原输入，并在加法节点与黑色主计算路径汇合。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+      .block-boundary {
+        fill: #f7f7f5;
+        stroke: #888888;
+        stroke-width: 2;
+      }
+      .block-label {
+        font-size: 16px;
+        font-weight: 700;
+        fill: #555555;
+      }
+      .action-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .data-label {
+        font-size: 14px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-size: 16px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .output-value {
+        fill: #075bd7;
+      }
+      .action-title {
+        font-size: 17px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .action-subtitle {
+        font-size: 14px;
+        font-weight: 600;
+        fill: #666666;
+        text-anchor: middle;
+      }
+      .shortcut-label {
+        font-size: 15px;
+        font-weight: 700;
+        fill: #075bd7;
+        text-anchor: middle;
+      }
+      .main-arrow {
+        fill: none;
+        stroke: #202020;
+        stroke-width: 3.5;
+        stroke-linecap: square;
+        stroke-linejoin: round;
+      }
+      .residual-arrow {
+        fill: none;
+        stroke: #075bd7;
+        stroke-width: 3.5;
+        stroke-linecap: square;
+        stroke-linejoin: round;
+      }
+      .arrowhead {
+        fill: #202020;
+      }
+      .residual-head {
+        fill: #075bd7;
+      }
+      .add-node {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .add-sign {
+        font-size: 24px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+    </style>
+
+  </defs>
+
+  <rect width="900" height="905" fill="#fcfcfb" />
+
+  <!-- One complete GPT-2 Block. -->
+  <rect class="block-boundary" x="100" y="85" width="700" height="749" rx="20" />
+  <text class="ui-text block-label" x="125" y="114">GPT-2 Block（第 <tspan class="mono-text">l</tspan> 层）</text>
+
+  <!-- Data: 输入 Hidden State. -->
+  <text class="ui-text data-label" x="450" y="25">输入 Hidden State</text>
+  <text class="mono-text data-value" x="450" y="51">X_l [T,D]</text>
+
+  <path class="main-arrow" d="M 450 64 V 86" />
+  <polygon class="arrowhead" points="442,86 458,86 450,99" />
+  <rect class="action-box" x="350" y="105" width="200" height="50" rx="10" />
+  <text class="ui-text action-title" x="450" y="124">LayerNorm</text>
+  <text class="ui-text action-subtitle" x="450" y="146">Pre-Norm</text>
+
+  <path class="main-arrow" d="M 450 161 V 176" />
+  <polygon class="arrowhead" points="442,176 458,176 450,189" />
+  <rect class="action-box" x="350" y="195" width="200" height="50" rx="10" />
+  <text class="ui-text action-title" x="450" y="221">Self-Attention</text>
+
+  <!-- Data: Attention 更新. -->
+  <path class="main-arrow" d="M 450 251 V 263" />
+  <polygon class="arrowhead" points="442,263 458,263 450,276" />
+  <text class="ui-text data-label" x="450" y="290">Attention 更新</text>
+  <text class="mono-text data-value" x="450" y="315">A_l [T,D]</text>
+
+  <!-- Operator: First residual add. -->
+  <path class="main-arrow" d="M 450 329 V 341" />
+  <polygon class="arrowhead" points="442,341 458,341 450,354" />
+  <circle class="add-node" cx="450" cy="378" r="18" />
+  <text class="ui-text add-sign" x="450" y="386">+</text>
+
+  <path class="residual-arrow" d="M 450 64 H 680 V 378 H 487" />
+  <polygon class="residual-head" points="487,370 487,386 474,378" />
+  <text class="ui-text shortcut-label" x="620" y="164">Residual 旁路</text>
+  <text class="ui-text shortcut-label" x="620" y="186">保留 <tspan class="mono-text">X_l</tspan></text>
+
+  <!-- Data: 第一次 Residual Add 结果. -->
+  <path class="main-arrow" d="M 450 402 V 413" />
+  <polygon class="arrowhead" points="442,413 458,413 450,426" />
+  <text class="ui-text data-label" x="450" y="438">第一次 Residual Add 结果</text>
+  <text class="mono-text data-value" x="450" y="463">H_l [T,D]</text>
+
+  <path class="main-arrow" d="M 450 477 V 492" />
+  <polygon class="arrowhead" points="442,492 458,492 450,505" />
+  <rect class="action-box" x="350" y="511" width="200" height="50" rx="10" />
+  <text class="ui-text action-title" x="450" y="530">LayerNorm</text>
+  <text class="ui-text action-subtitle" x="450" y="552">Pre-Norm</text>
+
+  <path class="main-arrow" d="M 450 567 V 582" />
+  <polygon class="arrowhead" points="442,582 458,582 450,595" />
+  <rect class="action-box" x="350" y="601" width="200" height="50" rx="10" />
+  <text class="ui-text action-title" x="450" y="627">MLP</text>
+
+  <!-- Data: MLP 更新. -->
+  <path class="main-arrow" d="M 450 657 V 669" />
+  <polygon class="arrowhead" points="442,669 458,669 450,682" />
+  <text class="ui-text data-label" x="450" y="696">MLP 更新</text>
+  <text class="mono-text data-value" x="450" y="721">M_l [T,D]</text>
+
+  <!-- Operator: Second residual add. -->
+  <path class="main-arrow" d="M 450 735 V 747" />
+  <polygon class="arrowhead" points="442,747 458,747 450,760" />
+  <circle class="add-node" cx="450" cy="784" r="18" />
+  <text class="ui-text add-sign" x="450" y="792">+</text>
+
+  <path class="residual-arrow" d="M 450 477 H 680 V 784 H 487" />
+  <polygon class="residual-head" points="487,776 487,792 474,784" />
+  <text class="ui-text shortcut-label" x="620" y="606">Residual 旁路</text>
+  <text class="ui-text shortcut-label" x="620" y="628">保留 <tspan class="mono-text">H_l</tspan></text>
+
+  <!-- Data: 输出 Hidden State. -->
+  <path class="main-arrow" d="M 450 808 V 823" />
+  <polygon class="arrowhead" points="442,823 458,823 450,836" />
+  <text class="ui-text data-label" x="450" y="854">输出 Hidden State</text>
+  <text class="mono-text data-value output-value" x="450" y="880">X_(l+1) [T,D]</text>
+</svg>
