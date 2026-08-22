@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="730" viewBox="0 0 900 730" role="img" aria-labelledby="title desc">
+  <title id="title">Byte-level BPE 编码过程</title>
+  <desc id="desc">How are 依次经过预切分、字节级映射、BPE 合并和词表查询，得到 Token ID 2437 和 389。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .process-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .process-title {
+        font-size: 17px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .data-label {
+        font-size: 14px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 16px;
+        font-weight: 600;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-detail {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 14px;
+        font-weight: 600;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .output-value {
+        fill: #075bd7;
+      }
+      .arrow {
+        fill: none;
+        stroke: #1f1f1f;
+        stroke-width: 3.5;
+        stroke-linecap: square;
+      }
+      .arrowhead {
+        fill: #1f1f1f;
+      }
+    </style>
+  </defs>
+
+  <rect width="900" height="730" fill="#fcfcfb" />
+
+  <text class="ui-text data-label" x="450" y="28">输入字符串</text>
+  <text class="data-value" x="450" y="58">How are</text>
+
+  <path class="arrow" d="M 450 69 V 79" />
+  <polygon class="arrowhead" points="442,79 458,79 450,92" />
+
+  <rect class="process-box" x="270" y="98" width="360" height="56" rx="14" />
+  <text class="ui-text process-title" x="450" y="127">预切分</text>
+
+  <path class="arrow" d="M 450 160 V 170" />
+  <polygon class="arrowhead" points="442,170 458,170 450,183" />
+  <text class="data-value" x="450" y="208" xml:space="preserve">[&quot;How&quot;, &quot; are&quot;]</text>
+  <path class="arrow" d="M 450 218 V 228" />
+  <polygon class="arrowhead" points="442,228 458,228 450,241" />
+
+  <rect class="process-box" x="270" y="247" width="360" height="56" rx="14" />
+  <text class="ui-text process-title" x="450" y="276">字节级映射</text>
+
+  <path class="arrow" d="M 450 309 V 319" />
+  <polygon class="arrowhead" points="442,319 458,319 450,332" />
+  <text class="data-detail" x="450" y="356">&quot;How&quot; → [&quot;H&quot;, &quot;o&quot;, &quot;w&quot;]</text>
+  <text class="data-detail" x="450" y="384" xml:space="preserve">&quot; are&quot; → [&quot;Ġ&quot;, &quot;a&quot;, &quot;r&quot;, &quot;e&quot;]</text>
+  <path class="arrow" d="M 450 394 V 404" />
+  <polygon class="arrowhead" points="442,404 458,404 450,417" />
+
+  <rect class="process-box" x="270" y="423" width="360" height="56" rx="14" />
+  <text class="ui-text process-title" x="450" y="452">BPE 合并</text>
+
+  <path class="arrow" d="M 450 485 V 495" />
+  <polygon class="arrowhead" points="442,495 458,495 450,508" />
+  <text class="data-value" x="450" y="533">[&quot;How&quot;, &quot;Ġare&quot;]</text>
+  <path class="arrow" d="M 450 543 V 553" />
+  <polygon class="arrowhead" points="442,553 458,553 450,566" />
+
+  <rect class="process-box" x="270" y="572" width="360" height="56" rx="14" />
+  <text class="ui-text process-title" x="450" y="601">查询词表</text>
+
+  <path class="arrow" d="M 450 634 V 644" />
+  <polygon class="arrowhead" points="442,644 458,644 450,657" />
+  <text class="ui-text data-label" x="450" y="680">Token ID 序列</text>
+  <text class="data-value output-value" x="450" y="711">[2437, 389]</text>
+</svg>

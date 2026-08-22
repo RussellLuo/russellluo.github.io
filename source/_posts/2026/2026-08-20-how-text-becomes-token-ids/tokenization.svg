@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="430" viewBox="0 0 1600 430" role="img" aria-labelledby="title desc">
+  <title id="title">文本转换为 Token ID</title>
+  <desc id="desc">How are 被切分为两个 Token，并映射为 Token ID 2437 和 389。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .stage-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .stage-title {
+        font-size: 28px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .stage-value {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        font-size: 25px;
+        font-weight: 600;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .output-value {
+        fill: #075bd7;
+      }
+      .arrow-label {
+        font-size: 20px;
+        font-weight: 600;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .arrow {
+        fill: none;
+        stroke: #1f1f1f;
+        stroke-width: 4.5;
+        stroke-linecap: square;
+      }
+      .arrowhead {
+        fill: #1f1f1f;
+      }
+    </style>
+  </defs>
+
+  <rect width="1600" height="430" fill="#fcfcfb" />
+
+  <rect class="stage-box" x="60" y="110" width="360" height="220" rx="16" />
+  <text class="ui-text stage-title" x="240" y="174">输入文本</text>
+  <text class="stage-value" x="240" y="264">How are</text>
+
+  <rect class="stage-box" x="620" y="110" width="360" height="220" rx="16" />
+  <text class="ui-text stage-title" x="800" y="174">Token 序列</text>
+  <text class="stage-value" x="800" y="264" xml:space="preserve">[&quot;How&quot;, &quot; are&quot;]</text>
+
+  <rect class="stage-box" x="1180" y="110" width="360" height="220" rx="16" />
+  <text class="ui-text stage-title" x="1360" y="174">Token ID 序列</text>
+  <text class="stage-value output-value" x="1360" y="264">[2437, 389]</text>
+
+  <text class="ui-text arrow-label" x="520" y="184">切分</text>
+  <path class="arrow" d="M 440 220 H 598" />
+  <polygon class="arrowhead" points="598,209 618,220 598,231" />
+
+  <text class="ui-text arrow-label" x="1080" y="184">查词表</text>
+  <path class="arrow" d="M 1000 220 H 1158" />
+  <polygon class="arrowhead" points="1158,209 1178,220 1158,231" />
+</svg>
