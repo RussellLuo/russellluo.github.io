@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="510" viewBox="0 0 1600 510" role="img" aria-labelledby="title desc">
+  <title id="title">从 Embedding 到 Initial Hidden State</title>
+  <desc id="desc">Token ID 在 Token Embedding Table 中查表得到 Token Embedding，Position ID 在 Position Embedding Table 中查表得到 Position Embedding。两个形状相同的 Tensor 逐元素相加，得到进入第一个 GPT-2 Block 的 Initial Hidden State。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+      .input-box {
+        fill: #f7f7f5;
+        stroke: #555555;
+        stroke-width: 2.5;
+      }
+      .table-box,
+      .vector-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .focus-box {
+        fill: #eaf3ff;
+        stroke: #075bd7;
+        stroke-width: 3;
+      }
+      .box-title {
+        font-size: 23px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .box-subtitle {
+        font-size: 18px;
+        font-weight: 600;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-size: 17px;
+        font-weight: 600;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .arrow {
+        fill: none;
+        stroke: #1f1f1f;
+        stroke-width: 4;
+        stroke-linecap: square;
+        stroke-linejoin: round;
+      }
+      .arrowhead {
+        fill: #1f1f1f;
+      }
+      .plus-circle {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 3;
+      }
+      .plus-sign {
+        font-size: 38px;
+        font-weight: 600;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
+
+  <rect width="1600" height="510" fill="#fcfcfb" />
+
+  <!-- Token Embedding branch. -->
+  <rect class="input-box" x="60" y="65" width="230" height="100" rx="16" />
+  <text class="ui-text box-title" x="175" y="108">Token IDs</text>
+  <text class="mono-text data-value" x="175" y="141">[2437, 389]</text>
+
+  <rect class="table-box" x="380" y="40" width="320" height="150" rx="18" />
+  <text class="ui-text box-title" x="540" y="92">Token Embedding Table</text>
+  <text class="mono-text data-value" x="540" y="128">[V, D]</text>
+  <text class="ui-text box-subtitle" x="540" y="161">根据 Token ID 查表</text>
+
+  <rect class="vector-box" x="790" y="65" width="270" height="100" rx="16" />
+  <text class="ui-text box-title" x="925" y="108">Token Embedding</text>
+  <text class="mono-text data-value" x="925" y="141">[T, D]</text>
+
+  <!-- Position Embedding branch. -->
+  <rect class="input-box" x="60" y="335" width="230" height="100" rx="16" />
+  <text class="ui-text box-title" x="175" y="378">Position IDs</text>
+  <text class="mono-text data-value" x="175" y="411">[0, 1]</text>
+
+  <rect class="table-box" x="380" y="310" width="320" height="150" rx="18" />
+  <text class="ui-text box-title" x="540" y="362">Position Embedding Table</text>
+  <text class="mono-text data-value" x="540" y="398">[C, D]</text>
+  <text class="ui-text box-subtitle" x="540" y="431">根据 Position ID 查表</text>
+
+  <rect class="vector-box" x="790" y="335" width="270" height="100" rx="16" />
+  <text class="ui-text box-title" x="925" y="378">Position Embedding</text>
+  <text class="mono-text data-value" x="925" y="411">[T, D]</text>
+
+  <!-- Lookup arrows. -->
+  <path class="arrow" d="M 290 115 H 358" />
+  <polygon class="arrowhead" points="358,104 378,115 358,126" />
+  <path class="arrow" d="M 700 115 H 768" />
+  <polygon class="arrowhead" points="768,104 788,115 768,126" />
+
+  <path class="arrow" d="M 290 385 H 358" />
+  <polygon class="arrowhead" points="358,374 378,385 358,396" />
+  <path class="arrow" d="M 700 385 H 768" />
+  <polygon class="arrowhead" points="768,374 788,385 768,396" />
+
+  <!-- The two Embedding results converge at an element-wise add. -->
+  <path class="arrow" d="M 1060 115 H 1165 V 207" />
+  <polygon class="arrowhead" points="1155,207 1165,219 1175,207" />
+  <path class="arrow" d="M 1060 385 H 1165 V 303" />
+  <polygon class="arrowhead" points="1155,303 1165,291 1175,303" />
+
+  <circle class="plus-circle" cx="1165" cy="255" r="36" />
+  <text class="ui-text plus-sign" x="1165" y="268">+</text>
+
+  <path class="arrow" d="M 1201 255 H 1248" />
+  <polygon class="arrowhead" points="1248,244 1268,255 1248,266" />
+
+  <!-- Initial Hidden State enters the first Transformer Block. -->
+  <rect class="focus-box" x="1270" y="200" width="280" height="110" rx="18" />
+  <text class="ui-text box-title" x="1410" y="247">Initial Hidden State</text>
+  <text class="mono-text data-value" x="1410" y="282">[T, D] → Block 1</text>
+</svg>
