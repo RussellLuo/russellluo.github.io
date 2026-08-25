@@ -152,8 +152,8 @@ GPT-2 使用 Learned Absolute Position Embedding（学习得到的绝对位置�
 Token Embedding 和 Position Embedding 的 shape 相同，GPT-2 将它们逐元素相加：
 
 ```text
-Token Embedding    [T, D]
-+ Position Embedding [T, D]
+Token Embedding        [T, D]
++ Position Embedding   [T, D]
 = Initial Hidden State [T, D]
 ```
 
@@ -168,7 +168,7 @@ X_0[i] = E_token[id_i] + E_position[pos_i]
 ```text
 Token Embedding       [ 0.20, -0.10,  0.50]
 Position Embedding    [ 0.01,  0.02, -0.03]
-                       ----------------------
+                      ---------------------
 Initial Hidden State  [ 0.21, -0.08,  0.47]
 ```
 
@@ -186,28 +186,28 @@ Token Embedding        [2, 768]
 
 ## Embedding 参数从哪里来
 
-Token Embedding 和 Position Embedding 都是 GPT-2 在训练过程中学习得到的模型参数。推理时，推理框架不会重新训练或随机生成这些参数，而是从模型文件中加载已经训练好的权重。
+Token Embedding Table 和 Position Embedding Table 都是 GPT-2 在训练过程中学习得到的模型参数。推理时，推理框架不会重新训练或随机生成它们，而是从模型文件中加载训练好的参数。
 
-其通用过程可以概括为：
+从训练到查表的过程可以概括为：
 
 ```text
-训练得到的模型参数
-├── Token Embedding Table
-└── Position Embedding Table
-          ↓ 导出并保存到模型文件
-推理框架加载为运行时 Tensor
-          ↓ 根据 ID 查表
-Embedding
+训练阶段：得到两张 Embedding Table
+    ↓ 导出并保存
+模型文件：保存训练得到的参数
+    ↓ 推理框架加载
+推理运行时：加载为两个参数 Tensor
+    ↓ 分别根据 Token ID / Position ID 查表
+查表结果：Token Embedding / Position Embedding
 ```
 
-本文的实战使用 llama.cpp，因此模型参数保存在 GGUF 文件中。转换为 GGUF 后，GPT-2 中的两个 Embedding 参数对应为：
+本文实战使用的模型文件格式是 GGUF。转换为 GGUF 后，GPT-2 中的两个 Embedding 参数对应为：
 
 ```text
 transformer.wte → token_embd.weight
 transformer.wpe → position_embd.weight
 ```
 
-GGUF 是本文使用的模型文件格式：它用元数据保存模型架构和相关配置，用 Tensor 保存 Embedding Table 等训练参数。加载模型时，llama.cpp 会将这些参数加载为运行时 Tensor。
+GGUF 使用元数据保存模型架构和相关配置，用 Tensor 保存 Embedding Table 等训练参数。加载模型时，llama.cpp 会读取这些 Tensor，供后续查表使用。
 
 ## llama.cpp 实战
 
