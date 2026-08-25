@@ -329,25 +329,24 @@ for (int il = 0; il < n_layer; ++il) {
 ```bash
 ./build/bin/llama-eval-callback \
   -m "$GPT2_MODEL" \
-  --prompt 'How are' \
-  --device none 2>&1 |
+  --prompt 'How are' 2>&1 |
   rg 'common_debug_cb_eval: +(attn_norm|ffn_inp|ffn_norm|ffn_out|l_out)-(0|1) ='
 ```
 
 为了突出数据流，下面只保留了节点名称、输入关系和 shape：
 
 ```text
-attn_norm-0                                  = {768, 2}
-ffn_inp-0 = ADD(...{768, 2}, inpL{768, 2})  = {768, 2}
-ffn_norm-0                                  = {768, 2}
-ffn_out-0                                   = {768, 2}
+attn_norm-0                                   = {768, 2}
+ffn_inp-0 = ADD(...{768, 2}, inpL{768, 2})    = {768, 2}
+ffn_norm-0                                    = {768, 2}
+ffn_out-0                                     = {768, 2}
 l_out-0   = ADD(ffn_out-0,
-                ffn_inp-0)                  = {768, 2}
+                ffn_inp-0)                    = {768, 2}
 
-attn_norm-1                                  = {768, 2}
+attn_norm-1                                   = {768, 2}
 ffn_inp-1 = ADD(...{768, 2}, l_out-0{768, 2}) = {768, 2}
 ...
-l_out-1                                      = {768, 2}
+l_out-1                                       = {768, 2}
 ```
 
 这些节点是 `llama-eval-callback` 输出的运行时中间 Tensor，不是前面 `blk.0.attn_norm.weight`、`blk.0.attn_norm.bias` 这类模型参数。节点名中的 `-0` 和 `-1` 分别表示 Block 0 和 Block 1，它们与原理概念的对应关系见上一节表格。输出中的 `...` 表示没有独立回调节点名的 Attention 更新，这里只保留其 shape。
