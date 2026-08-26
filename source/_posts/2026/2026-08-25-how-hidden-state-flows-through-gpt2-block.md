@@ -33,9 +33,9 @@ Self-Attention 和 MLP 都采用 Pre-Norm 和 Residual Connection（残差连接
 
 ![Hidden State 流过一个 GPT-2 Block 的数据流](gpt2-block-flow.svg)
 
-阅读这张图时，黑色主路径经过 LayerNorm 和子层，依次产生 Attention 更新 `A_l` 和 MLP 更新 `M_l`；蓝色 Residual 旁路保留该子层进入 LayerNorm 之前的状态。两条路径最终在 `+` 处逐元素相加。
+图中，黑色主路径经过 LayerNorm 和子层，分别产生 Attention 更新 `A_l` 和 MLP 更新 `M_l`；蓝色 Residual Connection 旁路则保留各子层进入 LayerNorm 前的状态。在每个阶段，两条路径都在 `+` 处逐元素相加。
 
-整张图可以分成两个依次执行、结构相同的阶段：
+一个 Block 的完整数据流可以分为两个依次执行、结构相同的阶段：
 
 1. **Attention 阶段**：以 `X_l` 为输入，经过 LayerNorm 和 Self-Attention 得到更新 `A_l`；再将 `A_l` 与原始 `X_l` 相加，得到 `H_l`。
 2. **MLP 阶段**：以 `H_l` 为输入，经过 LayerNorm 和 MLP 得到更新 `M_l`；再将 `M_l` 与原始 `H_l` 相加，得到 `X_(l + 1)`。
@@ -62,7 +62,7 @@ Hidden State 可以理解为模型在当前层对整段 Token 序列的内部表
 
 ```text
 "How"  的表示 ─┐
-                ├─ Hidden State [2, 768]
+              ├─ Hidden State [2, 768]
 " are" 的表示 ─┘
 ```
 
@@ -91,7 +91,7 @@ X_l [T,D] = [
 
 其中，`l` 表示 Block 层编号，`i` 表示 Token 在序列中的位置，最后一个下标表示向量内部的维度编号。对于 GPT-2 Small，`D = 768`。
 
-Self-Attention 会在遵守因果约束的前提下，让不同位置之间交换信息；MLP 则对每个位置分别做进一步变换。虽然内部计算不同，但两个子层最终都会回到 `[T,D]`，才能与 Residual 分支逐元素相加。
+Self-Attention 会在遵守因果约束的前提下，让不同位置之间交换信息；MLP 则对每个位置分别做进一步变换。虽然内部计算不同，但两个子层最终都会回到 `[T,D]`，才能与 Residual Connection 分支逐元素相加。
 
 ## Pre-Norm
 
@@ -119,7 +119,7 @@ X_l → LayerNorm → Attention → Residual Add
 H_l → LayerNorm → MLP       → Residual Add
 ```
 
-Pre-Norm 可以写成 `x + Sublayer(LN(x))`：原始状态 `x` 沿 Residual 主路径直接保留，归一化后的另一份状态则交给子层计算更新。相比将相加结果再归一化的 Post-Norm `LN(x + Sublayer(x))`，Pre-Norm 保留了不经过 LayerNorm 的直接路径，也为训练时的梯度传播提供了更直接的通道。
+Pre-Norm 可以写成 `x + Sublayer(LN(x))`：原始状态 `x` 沿 Residual Connection 主路径直接保留，归一化后的另一份状态则交给子层计算更新。相比将相加结果再归一化的 Post-Norm `LN(x + Sublayer(x))`，Pre-Norm 保留了不经过 LayerNorm 的直接路径，也为训练时的梯度传播提供了更直接的通道。
 
 > **Pre-Norm 为什么更容易训练？**
 >
@@ -136,7 +136,7 @@ Residual Connection 不直接用子层输出替换原来的 Hidden State，而�
 x_new  = x + F(x)
 ```
 
-这里的 `F(x)` 表示 LayerNorm 和子层共同算出的更新。在前面的 Block 数据流中，`A_l` 和 `M_l` 分别是两个子层产生的 `F(x)`，而 `X_l` 和 `H_l` 则沿对应的 Residual 旁路直接保留。
+这里的 `F(x)` 表示 LayerNorm 和子层共同算出的更新。在前面的 Block 数据流中，`A_l` 和 `M_l` 分别是两个子层产生的 `F(x)`，而 `X_l` 和 `H_l` 则沿对应的 Residual Connection 旁路直接保留。
 
 不使用 Residual Connection 时，下一层只能接收到子层输出；使用 Residual Connection 后，原状态 `x` 会沿旁路直接传到输出：
 

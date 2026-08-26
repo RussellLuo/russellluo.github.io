@@ -145,7 +145,7 @@ Position ID 和 Token ID 是两套不同的编号：
 - Token ID 用来查询 Token Embedding Table，表示“当前是什么 Token”。
 - Position ID 用来查询 Position Embedding Table，表示“当前位于哪里”。
 
-GPT-2 使用 Learned Absolute Position Embedding（学习得到的绝对位置嵌入）。这里的“绝对”表示每个位置使用自己的编号，例如 `0、1、2`。
+GPT-2 的 Position Embedding 通过训练学习得到，并使用绝对位置编号。这里的“绝对”表示每个位置使用自己的编号，例如 `0、1、2`。
 
 ## Initial Hidden State
 
@@ -419,7 +419,7 @@ embd {768,2} + pos_embd {768,2}
 本文以 `[2437, 389]` 为例，说明了 Token ID 如何变成 GPT-2 的输入向量：
 
 - Token ID 只是词表中的整数编号；GPT-2 将它作为下标，查询训练得到的 Token Embedding Table。
-- GPT-2 同时根据 Position ID 查询 Learned Absolute Position Embedding，为每个 Token 加入位置信息。
+- GPT-2 同时根据 Position ID 查询 Position Embedding，为每个 Token 加入位置信息。
 - Token Embedding 与 Position Embedding 逐元素相加，得到 Initial Hidden State。
 
 得到的 `inpL` 会进入第一个 GPT-2 Block，成为后续 12 层计算的起点。
