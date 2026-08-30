@@ -1,0 +1,270 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="970" viewBox="0 50 1300 970" role="img" aria-labelledby="title desc">
+  <title id="title">单个 Head 的上下文读取</title>
+  <desc id="desc">图从上向下展示 Attention 输入 Z_l 中 How 和 are 对应的位置向量。两个位置向量各自产生 Query、Key 和 Value。蓝色当前 Query 分别与两个橙色 Key 计算原始匹配分数，经过缩放、Causal Mask 和 Softmax 得到 Attention 权重，再用权重读取两个绿色 Value 并相加，形成当前 Head 在 are 位置的输出。浅灰色背景标出 Scaled Dot-Product Attention 的范围，Head 输出位于背景之外。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+      .stage-label {
+        font-size: 17px;
+        font-weight: 700;
+        fill: #666666;
+      }
+      .attention-group {
+        fill: #f2f2f0;
+      }
+      .module-label {
+        font-size: 16px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .box-title {
+        font-size: 21px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-size: 17px;
+        font-weight: 650;
+        text-anchor: middle;
+      }
+      .token-vector {
+        font-size: 15px;
+        font-weight: 600;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .token-box {
+        fill: #ffffff;
+        stroke: #555555;
+        stroke-width: 2.5;
+      }
+      .current-token {
+        fill: #eaf3ff;
+        stroke: #075bd7;
+        stroke-width: 3;
+      }
+      .q-box {
+        fill: #eaf3ff;
+        stroke: #075bd7;
+        stroke-width: 2.5;
+      }
+      .q-muted {
+        fill: #f4f4f3;
+        stroke: #a8a8a8;
+        stroke-width: 2;
+      }
+      .k-box {
+        fill: #fff8ec;
+        stroke: #b98532;
+        stroke-width: 2.2;
+      }
+      .v-box {
+        fill: #f3f8f3;
+        stroke: #66946b;
+        stroke-width: 2.2;
+      }
+      .action-box {
+        fill: #ffffff;
+        stroke: #3f3f3f;
+        stroke-width: 2.5;
+      }
+      .weight-box {
+        fill: #ffffff;
+        stroke: #3f3f3f;
+        stroke-width: 2.5;
+      }
+      .output-box {
+        fill: #ffffff;
+        stroke: #3f3f3f;
+        stroke-width: 2.5;
+      }
+      .sum-circle {
+        fill: #ffffff;
+        stroke: #3f3f3f;
+        stroke-width: 2.5;
+      }
+      .sum-text {
+        font-size: 30px;
+        font-weight: 500;
+        text-anchor: middle;
+      }
+      .focus-arrow {
+        fill: none;
+        stroke: #075bd7;
+        stroke-width: 3.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        marker-end: url(#arrow-blue);
+      }
+      .output-arrow {
+        fill: none;
+        stroke: #444444;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        marker-end: url(#arrow-black);
+      }
+      .key-arrow {
+        fill: none;
+        stroke: #b98532;
+        stroke-width: 2.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        marker-end: url(#arrow-orange);
+      }
+      .value-arrow {
+        fill: none;
+        stroke: #66946b;
+        stroke-width: 2.6;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        marker-end: url(#arrow-green);
+      }
+      .value-underlay {
+        fill: none;
+        stroke: #fcfcfb;
+        stroke-width: 12;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+      .calc-arrow {
+        fill: none;
+        stroke: #444444;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        marker-end: url(#arrow-black);
+      }
+      .weight-arrow {
+        fill: none;
+        stroke: #444444;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        marker-end: url(#arrow-black);
+      }
+      .path-label {
+        font-size: 15px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+    </style>
+
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#075bd7" />
+    </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#b98532" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#66946b" />
+    </marker>
+    <marker id="arrow-black" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#444444" />
+    </marker>
+  </defs>
+
+  <rect width="1300" height="1020" fill="#fcfcfb" />
+
+  <!-- A light background groups the operations inside Scaled Dot-Product Attention. -->
+  <rect class="attention-group" x="180" y="345" width="1010" height="530" rx="24" />
+  <text class="ui-text module-label" x="700" y="390">Scaled Dot-Product Attention</text>
+
+  <text class="ui-text stage-label" x="42" y="135">输入</text>
+  <text class="ui-text stage-label" x="42" y="243">Q、K、V</text>
+  <text class="ui-text stage-label" x="42" y="472">原始匹配分数</text>
+  <text class="ui-text stage-label" x="42" y="606">Attention 权重</text>
+  <text class="ui-text stage-label" x="42" y="751">读取 Value</text>
+  <text class="ui-text stage-label" x="42" y="850">加权求和</text>
+  <text class="ui-text stage-label" x="42" y="946">输出</text>
+
+  <!-- The two token positions in the current Attention input. -->
+  <rect class="token-box" x="320" y="96" width="300" height="62" rx="15" />
+  <text class="ui-text box-title" x="470" y="122">“How”</text>
+  <text class="mono-text token-vector" x="470" y="147">z_(l,0) [D]</text>
+
+  <rect class="current-token" x="680" y="96" width="300" height="62" rx="15" />
+  <text class="ui-text box-title" x="830" y="122">“ are”</text>
+  <text class="mono-text token-vector" x="830" y="147">z_(l,1) [D]</text>
+
+  <!-- Compact Q/K/V triplets align directly with the two visible input Tokens. -->
+  <rect class="q-muted" x="320" y="204" width="88" height="64" rx="12" />
+  <text class="mono-text data-value" x="364" y="243">q_0^(h)</text>
+
+  <rect class="k-box" x="426" y="204" width="88" height="64" rx="12" />
+  <text class="mono-text data-value" x="470" y="243">k_0^(h)</text>
+
+  <rect class="v-box" x="532" y="204" width="88" height="64" rx="12" />
+  <text class="mono-text data-value" x="576" y="243">v_0^(h)</text>
+
+  <rect class="q-box" x="680" y="204" width="88" height="64" rx="12" />
+  <text class="mono-text data-value" x="724" y="243">q_1^(h)</text>
+
+  <rect class="k-box" x="786" y="204" width="88" height="64" rx="12" />
+  <text class="mono-text data-value" x="830" y="243">k_1^(h)</text>
+
+  <rect class="v-box" x="892" y="204" width="88" height="64" rx="12" />
+  <text class="mono-text data-value" x="936" y="243">v_1^(h)</text>
+
+  <!-- QK scores. -->
+  <rect class="action-box" x="320" y="430" width="300" height="70" rx="16" />
+  <text class="mono-text data-value" x="470" y="472">q_1^(h) · k_0^(h)</text>
+
+  <rect class="action-box" x="780" y="430" width="300" height="70" rx="16" />
+  <text class="mono-text data-value" x="930" y="472">q_1^(h) · k_1^(h)</text>
+
+  <!-- Scale, mask and softmax. -->
+  <rect class="weight-box" x="500" y="557" width="400" height="82" rx="17" />
+  <text class="ui-text box-title" x="700" y="590">缩放 + Causal Mask + Softmax</text>
+  <text class="mono-text data-value" x="700" y="623">[p_(1,0), p_(1,1)]</text>
+
+  <!-- Weighted Values. -->
+  <rect class="v-box" x="320" y="712" width="300" height="62" rx="14" />
+  <text class="mono-text data-value" x="470" y="750">p_(1,0) × v_0^(h)</text>
+
+  <rect class="v-box" x="780" y="712" width="300" height="62" rx="14" />
+  <text class="mono-text data-value" x="930" y="750">p_(1,1) × v_1^(h)</text>
+
+  <!-- Weighted Values are summed into the output. -->
+  <circle class="sum-circle" cx="700" cy="843" r="24" />
+  <text class="ui-text sum-text" x="700" y="853">+</text>
+
+  <rect class="output-box" x="500" y="900" width="400" height="88" rx="18" />
+  <text class="ui-text box-title" x="700" y="934">“ are”的当前 Head 输出</text>
+  <text class="mono-text data-value" x="700" y="967">o_1^(h) [D_h]</text>
+
+  <!-- Current Query and visible Keys produce two scores. -->
+  <path class="focus-arrow" d="M 724 268 V 320 H 520 V 430" />
+  <path class="focus-arrow" d="M 724 268 V 320 H 880 V 430" />
+  <path class="key-arrow" d="M 470 268 V 300 H 420 V 430" />
+  <path class="key-arrow" d="M 830 268 V 300 H 980 V 430" />
+
+  <!-- Scores become probabilities. -->
+  <path class="calc-arrow" d="M 470 500 V 525 H 600 V 557" />
+  <path class="calc-arrow" d="M 930 500 V 525 H 800 V 557" />
+
+  <!-- Probabilities weight the two Values. -->
+  <path class="weight-arrow" d="M 650 639 V 669 H 470 V 712" />
+  <path class="weight-arrow" d="M 750 639 V 669 H 930 V 712" />
+  <text class="ui-text path-label" x="560" y="661">p_(1,0)</text>
+  <text class="ui-text path-label" x="840" y="661">p_(1,1)</text>
+
+  <!-- Values bypass QK scoring and enter the weighted-Value boxes from the sides. -->
+  <!-- A local white bridge marks the sole geometric crossing as a non-junction. -->
+  <path class="value-underlay" d="M 485 280 H 455" />
+  <path class="value-arrow" d="M 576 268 V 280 H 290 V 743 H 320" />
+  <path class="value-arrow" d="M 936 268 V 280 H 1110 V 743 H 1080" />
+
+  <!-- Weighted Values are summed into the output. -->
+  <path class="calc-arrow" d="M 470 774 V 799 H 660 L 683 826" />
+  <path class="calc-arrow" d="M 930 774 V 799 H 740 L 717 826" />
+  <path class="output-arrow" d="M 700 867 V 900" />
+</svg>

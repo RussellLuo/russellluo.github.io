@@ -1,0 +1,179 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="720" viewBox="0 0 1000 720" role="img" aria-labelledby="title desc">
+  <title id="title">Self-Attention 与单个 Head</title>
+  <desc id="desc">图从上向下展示输入 Hidden State X_l 经过 LayerNorm 得到 Attention 输入 Z_l。浅灰色 Self-Attention 边界内，多个 Head 并行读取 Z_l，分别产生各自的输出；这些输出随后合并，得到边界外的 Attention 更新 A_l。白色圆角框表示计算动作，无方框的等宽变量表示数据。蓝色路径从 Z_l 经过 Head h 到 O_h，表示本文聚焦的单头计算；后续合并路径使用中性色。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+      .module-boundary {
+        fill: #f7f7f5;
+        stroke: #888888;
+        stroke-width: 2;
+      }
+      .module-label {
+        font-size: 16px;
+        font-weight: 700;
+        fill: #555555;
+      }
+      .action-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .focus-box {
+        fill: #eaf3ff;
+        stroke: #075bd7;
+        stroke-width: 3;
+      }
+      .data-label {
+        font-size: 14px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-size: 16px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .output-value {
+        fill: #075bd7;
+      }
+      .action-title {
+        font-size: 17px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .action-subtitle {
+        font-size: 14px;
+        font-weight: 600;
+        fill: #666666;
+        text-anchor: middle;
+      }
+      .main-arrow {
+        fill: none;
+        stroke: #202020;
+        stroke-width: 3.5;
+        stroke-linecap: square;
+        stroke-linejoin: round;
+      }
+      .branch-line {
+        fill: none;
+        stroke: #777777;
+        stroke-width: 2.5;
+        stroke-linecap: square;
+        stroke-linejoin: round;
+      }
+      .focus-arrow {
+        fill: none;
+        stroke: #075bd7;
+        stroke-width: 3.5;
+        stroke-linecap: square;
+        stroke-linejoin: round;
+      }
+      .arrowhead {
+        fill: #202020;
+      }
+      .branch-head {
+        fill: #777777;
+      }
+      .focus-head {
+        fill: #075bd7;
+      }
+      .ellipsis {
+        font-size: 28px;
+        font-weight: 700;
+        fill: #888888;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
+
+  <rect width="1000" height="720" fill="#fcfcfb" />
+
+  <!-- Data: Block input. -->
+  <text class="ui-text data-label" x="500" y="25">输入 Hidden State</text>
+  <text class="mono-text data-value" x="500" y="51">X_l [T,D]</text>
+
+  <!-- Action: LayerNorm. -->
+  <path class="main-arrow" d="M 500 64 V 86" />
+  <polygon class="arrowhead" points="492,86 508,86 500,99" />
+  <rect class="action-box" x="400" y="105" width="200" height="50" rx="10" />
+  <text class="ui-text action-title" x="500" y="124">LayerNorm</text>
+  <text class="ui-text action-subtitle" x="500" y="146">Pre-Norm</text>
+
+  <!-- Data: Attention input. -->
+  <path class="main-arrow" d="M 500 161 V 176" />
+  <polygon class="arrowhead" points="492,176 508,176 500,189" />
+  <text class="ui-text data-label" x="500" y="207">Attention 输入</text>
+  <text class="mono-text data-value" x="500" y="232">Z_l [T,D]</text>
+
+  <!-- Expanded Self-Attention action from the parent Block diagram. -->
+  <rect class="module-boundary" x="70" y="260" width="860" height="370" rx="20" />
+  <text class="ui-text module-label" x="95" y="289">Self-Attention</text>
+
+  <!-- Z_l is read by every Head. -->
+  <path class="branch-line" d="M 500 246 V 305 H 200" />
+  <path class="branch-line" d="M 500 305 H 800" />
+
+  <path class="branch-line" d="M 200 305 V 316" />
+  <polygon class="branch-head" points="192,316 208,316 200,329" />
+
+  <path class="focus-arrow" d="M 500 305 V 316" />
+  <polygon class="focus-head" points="492,316 508,316 500,329" />
+
+  <path class="branch-line" d="M 800 305 V 316" />
+  <polygon class="branch-head" points="792,316 808,316 800,329" />
+
+  <!-- Actions: parallel Heads. -->
+  <rect class="action-box" x="110" y="335" width="180" height="60" rx="10" />
+  <text class="ui-text action-title" x="200" y="365">Head 0</text>
+
+  <text class="ui-text ellipsis" x="350" y="373">…</text>
+
+  <rect class="focus-box" x="410" y="335" width="180" height="60" rx="10" />
+  <text class="ui-text action-title" x="500" y="365">Head h</text>
+
+  <text class="ui-text ellipsis" x="650" y="373">…</text>
+
+  <rect class="action-box" x="710" y="335" width="180" height="60" rx="10" />
+  <text class="ui-text action-title" x="800" y="365">Head 11</text>
+
+  <!-- Data: one output from each Head. -->
+  <path class="branch-line" d="M 200 401 V 413" />
+  <polygon class="branch-head" points="192,413 208,413 200,426" />
+  <text class="mono-text data-value" x="200" y="461">O_0 [T,D_h]</text>
+
+  <path class="focus-arrow" d="M 500 401 V 413" />
+  <polygon class="focus-head" points="492,413 508,413 500,426" />
+  <text class="mono-text data-value output-value" x="500" y="461">O_h [T,D_h]</text>
+
+  <path class="branch-line" d="M 800 401 V 413" />
+  <polygon class="branch-head" points="792,413 808,413 800,426" />
+  <text class="mono-text data-value" x="800" y="461">O_11 [T,D_h]</text>
+
+  <!-- All Head outputs enter one collapsed merge action. -->
+  <path class="branch-line" d="M 200 484 V 490 H 500" />
+  <path class="branch-line" d="M 500 484 V 490" />
+  <path class="branch-line" d="M 800 484 V 490 H 500" />
+
+  <path class="main-arrow" d="M 500 490 V 501" />
+  <polygon class="arrowhead" points="492,501 508,501 500,514" />
+
+  <rect class="action-box" x="340" y="520" width="320" height="60" rx="10" />
+  <text class="ui-text action-title" x="500" y="550">合并多个 Head</text>
+
+  <!-- Data: complete Attention update outside the expanded boundary. -->
+  <path class="main-arrow" d="M 500 586 V 636" />
+  <polygon class="arrowhead" points="492,636 508,636 500,649" />
+  <text class="ui-text data-label" x="500" y="675">Attention 更新</text>
+  <text class="mono-text data-value" x="500" y="700">A_l [T,D]</text>
+</svg>

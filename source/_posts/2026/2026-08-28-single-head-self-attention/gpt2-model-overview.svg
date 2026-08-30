@@ -1,0 +1,111 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="500" viewBox="0 0 1600 500" role="img" aria-labelledby="title desc">
+  <title id="title">GPT-2 中 Self-Attention 的位置</title>
+  <desc id="desc">Token ID 序列进入 GPT-2 后，依次经过 Embedding、包含 Self-Attention 和 MLP 的十二个 Transformer Block，以及 LM Head，得到 logits。图中高亮每个 Transformer Block 内的 Self-Attention，并省略 Final LayerNorm、Residual 等结构细节。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+      .model-boundary {
+        fill: #f7f7f5;
+        stroke: #202020;
+        stroke-width: 3;
+      }
+      .stage-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .focus-box {
+        fill: #eaf3ff;
+        stroke: #075bd7;
+        stroke-width: 3;
+      }
+      .child-box {
+        fill: #ffffff;
+        stroke: #666666;
+        stroke-width: 2;
+      }
+      .model-label {
+        font-size: 30px;
+        font-weight: 700;
+      }
+      .stage-title {
+        font-size: 28px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .child-title {
+        font-size: 23px;
+        font-weight: 650;
+        text-anchor: middle;
+      }
+      .data-title {
+        font-size: 18px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-size: 16px;
+        font-weight: 600;
+        fill: #666666;
+        text-anchor: middle;
+      }
+      .arrow {
+        fill: none;
+        stroke: #1f1f1f;
+        stroke-width: 4;
+        stroke-linecap: square;
+      }
+      .arrowhead {
+        fill: #1f1f1f;
+      }
+    </style>
+  </defs>
+
+  <rect width="1600" height="500" fill="#fcfcfb" />
+
+  <text class="ui-text data-title" x="125" y="245">Token IDs</text>
+  <text class="mono-text data-value" x="125" y="282">[2437, 389]</text>
+
+  <rect class="model-boundary" x="260" y="45" width="1090" height="410" rx="24" />
+  <text class="ui-text model-label" x="305" y="95">GPT-2 模型</text>
+
+  <rect class="stage-box" x="305" y="200" width="230" height="110" rx="18" />
+  <text class="ui-text stage-title" x="420" y="265">Embedding</text>
+
+  <rect class="stage-box" x="620" y="105" width="390" height="300" rx="18" />
+  <text class="ui-text stage-title" x="815" y="155">Transformer Block × 12</text>
+
+  <rect class="focus-box" x="675" y="190" width="280" height="70" rx="13" />
+  <text class="ui-text child-title" x="815" y="234">Self-Attention</text>
+
+  <path class="arrow" d="M 815 266 V 280" />
+  <polygon class="arrowhead" points="805,280 815,298 825,280" />
+
+  <rect class="child-box" x="675" y="300" width="280" height="70" rx="13" />
+  <text class="ui-text child-title" x="815" y="344">MLP</text>
+
+  <rect class="stage-box" x="1090" y="200" width="220" height="110" rx="18" />
+  <text class="ui-text stage-title" x="1200" y="265">LM Head</text>
+
+  <path class="arrow" d="M 215 255 H 283" />
+  <polygon class="arrowhead" points="283,244 303,255 283,266" />
+
+  <path class="arrow" d="M 535 255 H 598" />
+  <polygon class="arrowhead" points="598,244 618,255 598,266" />
+
+  <path class="arrow" d="M 1010 255 H 1068" />
+  <polygon class="arrowhead" points="1068,244 1088,255 1068,266" />
+
+  <path class="arrow" d="M 1310 255 H 1408" />
+  <polygon class="arrowhead" points="1408,244 1428,255 1408,266" />
+  <text class="ui-text data-title" x="1510" y="246">logits</text>
+  <text class="mono-text data-value" x="1510" y="282">[V]</text>
+</svg>
