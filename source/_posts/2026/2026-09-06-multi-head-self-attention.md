@@ -405,11 +405,11 @@ cur = ggml_add(ctx0, cur, wo_b);
 |---|---|---|
 | Fused QKV | `[T,768] → [T,2304]` | `build_qkv()` 中 `build_lora_mm(layer.wqkv, cur, ...)` |
 | 拆分 Q / K / V | `[T,2304] → 3 × [12,T,64]` | 三个不同 offset 的 `ggml_view_3d()` |
-| 12 个 Head 的 Attention 计算 | `[12,T,64] → [12,T,T] → [12,T,64]` | `build_attn_mha()` 中 `kq → kq_soft_max → kqv`（上一篇已验证） |
+| 12 个 Head 的 Attention 计算 | `[12,T,64] → [12,T,T] → [12,T,64]` | `build_attn_mha()` 中 `kq → kq_soft_max → kqv` |
 | Concat | `[12,T,64] → [T,768]` | `ggml_permute()` + `ggml_cont_2d()` |
 | Output Projection | `[T,768] → [T,768]` | `build_attn()` 中 `build_lora_mm(wo, ...)` + bias |
 
-这些 C++ 调用只是在构建 GGML 计算图，定义节点、依赖关系和 Tensor shape，并未立即执行数值计算。前面的回调输出才来自后端执行后的 Tensor；完整的建图与执行调用链留到第 11 篇。
+这些 C++ 调用只是在构建 GGML 计算图，定义节点、依赖关系和 Tensor shape，并未立即执行数值计算。前面的回调输出才来自后端执行后的 Tensor；完整的建图与执行调用链留到后续文章。
 
 ## 小结
 
