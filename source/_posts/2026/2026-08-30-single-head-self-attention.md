@@ -25,7 +25,7 @@ GPT-2 同时使用多个 Attention Head（注意力头，以下简称 Head）。
 这家公司叫苹果，它生产手机。
 ```
 
-两句话都有“苹果”和“它”，但上下文不同。“水果”和“公司”会影响“苹果”在当前句子中的表示；处理“它”时，也需要结合此前位置的信息。也就是说，一个位置的表示不能只包含当前 Token，还需要聚合可见上下文。
+两句话都有“苹果”和“它”，但上下文不同。“水果”和“公司”会影响“苹果”在当前句子中的表示；处理“它”时，也需要结合此前位置的信息。也就是说，一个位置的表示不能只包含当前 Token，还需要读取可见上下文。
 
 回到本文使用的 `"How are"`，在第一个 GPT-2 Block 之前，每个位置的 Initial Hidden State 由自己的 Token Embedding 与 Position Embedding 相加得到：
 
@@ -34,7 +34,7 @@ GPT-2 同时使用多个 Attention Head（注意力头，以下简称 Head）。
 " are"  → x_(0,1) [D]
 ```
 
-`x_(0,0)` 和 `x_(0,1)` 已经分别包含“当前是什么 Token”和“当前位于哪里”，但 `" are"` 还没有通过 Attention 聚合 `"How"` 的信息。
+`x_(0,0)` 和 `x_(0,1)` 已经分别包含“当前是什么 Token”和“当前位于哪里”，但 `" are"` 还没有通过 Attention 读取 `"How"` 的信息。
 
 Self-Attention 将上下文读取拆成三个部分：
 
@@ -42,7 +42,7 @@ Self-Attention 将上下文读取拆成三个部分：
 2. Q、K 的匹配分数决定各个可见位置应该获得多大权重。
 3. 模型使用这些权重对 V 加权求和，得到包含上下文信息的新向量。
 
-如果始终以相同权重汇总所有可见位置的 V，模型就无法根据当前输入决定更侧重哪些位置。Self-Attention 则会根据当前 Hidden State 动态计算 Attention 权重，从可见位置中有选择地汇总信息。
+如果始终以相同权重对所有可见位置的 V 加权求和，模型就无法根据当前输入决定更侧重哪些位置。Self-Attention 则会根据当前 Hidden State 动态计算 Attention 权重，有选择地读取可见位置的信息。
 
 > **为什么 Transformer 使用 Self-Attention？**
 >
@@ -104,7 +104,7 @@ Q、K、V 都来自同一个 `Z_l`，但使用不同的投影参数，作用也�
 
 - **Query**：当前位置用什么特征发起查询。
 - **Key**：每个位置用什么特征与 Query 匹配。
-- **Value**：匹配后实际汇总的内容向量。
+- **Value**：根据 Attention 权重参与加权求和的内容向量。
 
 对第 `h` 个 Head，Q、K、V 的计算可以写成：
 
@@ -595,6 +595,6 @@ ggml_tensor * kqv = ggml_mul_mat(ctx0, v, kq);
 
 本文以 `"How are"` 中的 `" are"` 为例，从单个 Head 的视角说明了 Self-Attention 如何读取可见上下文：
 
-- 一个 Attention Head 用 Query 与 Key 计算分数，经缩放和 Causal Mask 排除未来位置，再由 Softmax 得到 Attention 权重，最后汇总 Value。
+- 一个 Attention Head 用 Query 与 Key 计算分数，经缩放和 Causal Mask 排除未来位置，再由 Softmax 得到 Attention 权重，最后对 Value 加权求和。
 - Q、K、V、Attention 权重和 Head 输出都由当前输入动态产生；训练得到并保存在模型文件中的是投影参数，而不是固定的 Attention 结果。
 - GPT-2 Small 并行计算 12 个 Head；单个 Head 输出 `O_h [T,64]`，还不是完整的 Attention 更新 `A_l [T,768]`。
