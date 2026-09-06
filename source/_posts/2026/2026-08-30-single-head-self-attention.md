@@ -12,9 +12,9 @@ title: 从零学大模型：Self-Attention —— 单头注意力
 
 ![GPT-2 中 Self-Attention 的位置](gpt2-model-overview.svg)
 
-在上一篇[《Hidden State 如何流过 GPT-2 Block？》](/2026/08/how-hidden-state-flows-through-gpt2-block)中，我们只跟踪了 Self-Attention 在 Block 中的输入和输出：LayerNorm 之后的 Hidden State 进入 Self-Attention，得到的 Attention 更新再通过 Residual Connection 加回原来的 Hidden State。本篇进一步展开内部计算，观察它如何读取可见上下文。
+在上一篇[《Hidden State 如何流过 GPT-2 Block？》](/2026/08/how-hidden-state-flows-through-gpt2-block)中，我们只跟踪了 Self-Attention 在 Block 中的输入和输出：LayerNorm 处理后的 Hidden State 进入 Self-Attention，产生的 Attention 更新再通过 Residual Connection 加回原 Hidden State。本篇继续展开内部计算，观察它如何读取可见上下文。
 
-GPT-2 同时使用多个 Attention Head（注意力头，以下简称 Head）。本文先说明单个 Head 与整体 Self-Attention 的关系，再以 `How are` 中的 `" are"` 为例，完整跟踪 Q、K、V、匹配分数、Causal Mask（因果掩码）、Softmax 和 Value 加权求和。单头视角不是额外的执行阶段，而是从多头并行计算中抽出的一条分支。
+GPT-2 同时使用多个 Attention Head（注意力头，以下简称 Head）。本文先说明单个 Head 与整体 Self-Attention 的关系，再以 `How are` 中的 `" are"` 为例，完整跟踪从 Q、K、V，到匹配分数、Causal Mask（因果掩码）、Softmax，再到 Value 加权求和的过程。单头视角不是额外的执行阶段，而是从多头并行计算中抽出的一条分支。
 
 ## 为什么需要 Self-Attention
 
@@ -46,13 +46,15 @@ Self-Attention 将上下文读取拆成三个部分：
 
 > **为什么 Transformer 使用 Self-Attention？**
 >
-> [GPT-2](https://cdn.openai.com/better-language-models/language-models.pdf) 采用基于 [Transformer](https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf) 的架构。与其他序列信息混合方式相比：
+> 处理序列时，模型需要在不同位置之间传递信息，常见做法有：
 >
-> - **RNN** 需要沿序列逐步传递状态，位置之间的计算具有顺序依赖。
-> - **常规局部 CNN** 可以并行计算，但远距离位置通常需要经过多层才能建立联系。
-> - **Self-Attention** 可以在一层内连接任意两个允许读取的位置，并对一段已经给定的序列并行计算各位置。
+> - **RNN（循环神经网络）** 需要沿序列逐步传递状态，因此各位置的计算存在顺序依赖。
+> - **CNN（卷积神经网络）** 可以并行计算，但使用局部卷积核时，每一层通常只能连接邻近位置，远距离位置需要经过多层才能建立联系。
+> - **Self-Attention** 可以在一层内直接连接任意两个允许读取的位置，并对已经给定的序列并行计算各位置。
 >
-> 这里的并行是指一次前向计算内部的位置计算；GPT-2 的自回归生成仍然需要逐个生成 Token。
+> [Transformer](https://papers.nips.cc/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf) 以 Self-Attention 为核心，兼顾远距离信息交互与并行计算；[GPT-2](https://cdn.openai.com/better-language-models/language-models.pdf) 也基于这一架构。
+>
+> 这里的“并行”是指一次前向计算可以同时处理多个位置；GPT-2 的自回归生成仍需逐个生成 Token。
 
 ## Self-Attention 与单个 Head
 
@@ -77,7 +79,7 @@ D_h = D / 12 = 64
 
 12 个 Head 的输出随后沿特征维合并回 `[T,768]`；Token 数量 `T` 不变，也不是逐元素相加。本文只跟踪到 `O_h`。
 
-## 上下文读取的完整流程
+## 单头上下文读取流程
 
 下面只观察第 `h` 个 Head，并以 `" are"` 位置的 Query 为例，沿图中箭头从上向下跟踪一次上下文读取：
 
@@ -94,15 +96,15 @@ D_h = D / 12 = 64
 3. **得到 Attention 权重**：Causal Mask 先排除不允许读取的位置，Softmax 再把保留的分数转换成权重 `p_(1,0)` 和 `p_(1,1)`，分别对应 `"How"` 和 `" are"`。
 4. **读取 Value**：将两个 Value（`v_0^(h)` 和 `v_1^(h)`）分别乘以对应的权重，再相加得到当前 Head 在 `" are"` 位置的输出 `o_1^(h) [D_h]`。
 
-实际的 Self-Attention 会在一次前向计算中为序列中的各个位置计算读取结果。“Self”表示 Q、K、V 来自同一段输入序列；“Causal”表示每个位置只能读取自身及此前位置。
+在处理整段输入的一次前向计算中，Self-Attention 会为序列中的各个位置计算读取结果。“Self”表示 Q、K、V 来自同一段输入序列；“Causal”表示每个位置只能读取自身及此前位置。
 
 ## Q、K、V
 
-Q、K、V 都来自同一个 `Z_l`，但使用不同的投影参数，因此承担不同作用。可以先这样理解三者的分工：
+Q、K、V 都来自同一个 `Z_l`，但使用不同的投影参数，作用也不同：
 
-- **Query**：当前位置拿什么条件去查找。
-- **Key**：每个位置拿什么特征参与匹配。
-- **Value**：匹配到某个位置后，实际汇总什么向量。
+- **Query**：当前位置用什么特征发起查询。
+- **Key**：每个位置用什么特征与 Query 匹配。
+- **Value**：匹配后实际汇总的内容向量。
 
 对第 `h` 个 Head，Q、K、V 的计算可以写成：
 
@@ -112,7 +114,7 @@ K_h = Z_l W_K^(h) + b_K^(h)
 V_h = Z_l W_V^(h) + b_V^(h)
 ```
 
-`Z_l W_Q^(h)` 表示矩阵乘法；后文相邻书写的矩阵也表示矩阵乘法。
+`Z_l W_Q^(h)` 表示矩阵乘法；下文中，相邻书写的矩阵同样表示矩阵乘法。
 
 当前 Head 使用三组训练得到的投影参数：权重矩阵 `W_Q^(h)`、`W_K^(h)`、`W_V^(h)`，以及偏置向量 `b_Q^(h)`、`b_K^(h)`、`b_V^(h)`。这些参数由当前 Head 的所有 Token 位置共用；Q、K、V 则由各位置的当前输入计算，会随输入变化。
 
@@ -161,7 +163,7 @@ score_h(1, 1) = q_1^(h) · k_1^(h)
 
 原始分数要依次经过三个步骤：**缩放 → Causal Mask → Softmax**。
 
-**第一步：缩放。** 当 `D_h` 较大时，点积的数值幅度也容易增大，使 Softmax 过早集中到少数位置。除以 `sqrt(D_h)` 可以控制分数的典型尺度：
+**第一步：缩放。** 随着 `D_h` 增大，点积的典型幅度也会增大，容易使 Softmax 过度集中到少数位置。除以 `sqrt(D_h)` 可以控制分数的典型尺度：
 
 ```text
 scaled_score_h(i, j) = score_h(i, j) / sqrt(D_h)
@@ -186,11 +188,11 @@ Query "How"      0       -∞
 
 Causal Mask 会加到缩放后的分数上：允许读取的位置加 `0`，不改变分数；未来位置加 `-∞`，经过 Softmax 后权重变成 `0`。因此，`q_0^(h)` 只能读取 `"How"`，`q_1^(h)` 可以读取 `"How"` 和 `" are"`。
 
-扩展到更长序列时，Causal Mask 会形成同样的下三角结构：即使一次输入整段文本，每个位置也只能使用当时可见的信息。
+扩展到更长序列时，Causal Mask 会形成同样的下三角结构：即使一次输入整段文本，每个位置也只能使用自身及此前位置的信息。
 
-> **Causal Mask 是否已经包含全部位置信息？**
+> **Causal Mask 能代替 Position Embedding 吗？**
 >
-> 不是。Causal Mask 只规定“哪些位置可见”，不能独自告诉模型当前位置是第几个 Token。GPT-2 的输入已经加入 Position Embedding；它通过训练学习得到，并使用绝对位置编号。Self-Attention 再使用 Causal Mask 限制信息流向。去掉位置输入后，普通 Self-Attention 本身无法区分不同排列中的绝对位置。
+> 不能。Causal Mask 只规定“哪些位置可见”，不能告诉模型当前位置是第几个 Token。GPT-2 的 Position Embedding 通过训练得到，并以绝对位置编号查表；Self-Attention 再使用 Causal Mask 限制信息流向。二者作用不同，不能相互替代。
 
 **第三步：Softmax。** 加入 Causal Mask 后，Softmax 沿每个 Query 对应的那一行计算，把可见位置的分数转换成总和为 `1` 的非负权重。对于 `q_1^(h)`，得到的两个权重是：
 
@@ -247,7 +249,7 @@ O_h[i,:]          = o_i^(h)
 
 因此，当前 `q_1^(h)` 对应 `P_h` 中索引为 `1` 的第二行，输出 `o_1^(h)` 对应 `O_h` 中索引为 `1` 的第二行。
 
-合在一起，就是 Scaled Dot-Product Attention 的完整公式：
+将三步合并，可得 Scaled Dot-Product Attention 的公式：
 
 ```text
 O_h = softmax(Q_h K_h^T / sqrt(D_h) + M) V_h
@@ -255,7 +257,9 @@ O_h = softmax(Q_h K_h^T / sqrt(D_h) + M) V_h
 
 ### 最小数值例子
 
-下面继续使用 `"How are"` 的两个位置（`T = 2`），并将 Head 维度简化为 `D_h = 4`，把分数、Causal Mask、Softmax 和 Value 加权连起来。为便于手算，这里只观察一个 Head，省略下标 `h`，并取 `Q = K`。GPT-2 Small 的实际 `D_h` 是 `64`，示例数值不代表真实运行结果。
+下面继续使用 `"How are"` 的两个位置（`T = 2`），并将 Head 维度简化为 `D_h = 4`，把分数、Causal Mask、Softmax 和 Value 加权连起来。
+
+为便于手算，这里只观察一个 Head，省略下标 `h`，并取 `Q = K`。GPT-2 Small 的实际 `D_h` 是 `64`，示例数值不代表真实运行结果。
 
 `Q`、`V` 的两行以及 `K^T` 的两列，都依次对应 `"How"` 和 `" are"`。设：
 
@@ -320,7 +324,7 @@ S = Q K^T / sqrt(4) + M = [
 softmax([1.000, 1.500]) ≈ [0.378, 0.622]
 ```
 
-得到完整的 Attention 权重：
+得到 Attention 权重矩阵：
 
 ```text
 P = [
@@ -336,7 +340,7 @@ O_1 ≈ 0.378 [1, 0, 1, 0] + 0.622 [0, 1, 0, 1]
     = [0.378, 0.622, 0.378, 0.622]
 ```
 
-完整结果为：
+对应的矩阵结果为：
 
 ```text
 O ≈ [
@@ -345,9 +349,9 @@ O ≈ [
 ]
 ```
 
-`"How"` 位置只能读取自己的 `V_0`；`" are"` 位置则从 `V_0` 和 `V_1` 读取信息。这就是一个 Head 中完整的 Causal Self-Attention 计算。
+`"How"` 位置只能读取自己的 `V_0`；`" are"` 位置则从 `V_0` 和 `V_1` 读取信息。至此，一个 Head 的 Causal Self-Attention 计算就完成了。
 
-## 完整 shape 主线
+## 单头 shape 主线
 
 训练完成后，`W_Q^(h)`、`W_K^(h)`、`W_V^(h)` 及其偏置作为模型参数，在推理时保持不变。运行时，当前 `Z_l` 依次产生 `Q_h`、`K_h`、`V_h`、匹配分数、Attention 权重和 `O_h`，这些 Tensor 都会随输入、Block 或 Head 发生变化。因此，“Attention 权重”不是保存在模型文件中的固定参数。
 
@@ -408,7 +412,7 @@ cmake --build build \
 }
 ```
 
-Hidden size 是 `768`，共分为 `12` 个 Head，因此每个 Head 的维度是 `768 / 12 = 64`。本文只选择 `Block 0 / Head 0`，因此后面的 Q、K、V 和输出都按单头逻辑 shape `[T,64]` 阅读，不比较不同 Head。
+当前模型的 Hidden size 为 `768`，包含 `12` 个 Head，因此每个 Head 的维度为 `768 / 12 = 64`。本文只选择 `Block 0 / Head 0`，因此后面的 Q、K、V 和输出都按单头逻辑 shape `[T,64]` 阅读，不比较不同 Head。
 
 ### 查看运行时 shape
 
@@ -436,7 +440,7 @@ kq_soft_max-0  = {256, 2, 12, 1}
 kqv-0          = {64, 2, 12, 1}
 ```
 
-节点名末尾的 `-0` 表示 Block 0，不表示 Head 0。对于 Q、K、V，`{64,12,2,1}` 的前三个维度依次表示每个 Head 的特征数、Head 数和 Token 数，即 `{head_dim, head_count, T, 1}`。Head 0 就是在 Head 数所在的第二个维度取索引 `0`。
+节点名末尾的 `-0` 表示 Block 0，不表示 Head 0。对于 Q、K、V，`{64,12,2,1}` 可以记为 `{head_dim, head_count, T, 1}`；前三个维度依次表示每个 Head 的特征数、Head 数和 Token 数。Head 0 就是在 Head 数所在的第二个维度取索引 `0`。
 
 分数 Tensor 的维度顺序不同：在 `{256,2,12,1}` 中，第三个维度 `12` 才是 Head 数，因此 Head 0 是该维度中索引为 `0` 的切片。后面的数值实验都只读取这个切片。
 
@@ -451,7 +455,7 @@ kqv-0          = {64, 2, 12, 1}
 
 llama.cpp 会先把本轮 `Kcur-0` 和 `Vcur-0` 写入 KV Cache，再让 Attention 读取 KV Cache 中的 K、V 视图。当前实验从空 KV Cache 开始处理 `How are`，因此前两个有效位置就是本轮产生的 K、V，对应这里的 `K_h`、`V_h`。
 
-`kq-0` 中的 `256` 来自当前 KV Cache 的对齐视图容量。本轮只有 `How` 和 ` are` 两个位置有效，其余槽位会被 Causal Mask 排除；它不表示输入变成了 256 个 Token。
+`kq-0` 中的 `256` 来自当前 KV Cache 的对齐视图容量。本轮只有 `How` 和 ` are` 两个位置有效，其余槽位会被 Causal Mask 排除；这里的 `256` 不表示输入变成了 256 个 Token。
 
 ### 验证单头 Attention 计算
 
@@ -486,7 +490,7 @@ llama.cpp 会先把本轮 `Kcur-0` 和 `Vcur-0` 写入 KV Cache，再让 Attenti
 [0.9534, 0.0466]
 ```
 
-Query 0 虽然在 `kq` 中也有两个原始分数，但 `" are"` 对它来说是未来位置，Causal Mask 会把第二项排除，因此最终权重为 `[1.0000, 0.0000]`。这验证了两个不同职责：Q/K 点积决定匹配分数，Causal Mask 决定哪些分数允许参与 Softmax。
+Query 0 虽然在 `kq` 中也有两个原始分数，但 `" are"` 对它来说是未来位置，Causal Mask 会把第二项排除，因此最终权重为 `[1.0000, 0.0000]`。这也说明二者职责不同：Q/K 点积决定匹配分数，Causal Mask 决定哪些分数可以参与 Softmax。
 
 **Value 加权。** 继续查看 `Vcur-0` 和 `kqv-0`：
 
@@ -523,7 +527,7 @@ o_1^(0)
 [-0.1080, 0.0509, 0.0538, ...]
 ```
 
-正文只保留了 4 位小数，因此手算结果与回调存在约 `0.0001` 的舍入误差。这仍验证了 `kq_soft_max` 中的 Attention 权重确实作用在 Value 上，并产生 Head 0 的输出 `O_h [2,64]`。
+上面的数值只保留了 4 位小数，因此手算结果与回调输出存在约 `0.0001` 的舍入误差。在这一误差范围内，两者结果一致，也说明 Attention 权重确实作用在 Value 上，并产生 Head 0 的输出 `O_h [2,64]`。
 
 **改变输入。** 最后把输入扩展为三个 Token `How are you`，再次查看 `kq_soft_max-0`：
 
@@ -544,7 +548,7 @@ Query 1 / " are" = [0.9534, 0.0466, 0.0000]
 Query 2 / " you" = [0.8849, 0.0563, 0.0588]
 ```
 
-Query 0 只能读取位置 0，Query 1 只能读取位置 0～1，Query 2 才能读取全部三个位置。前两个 Query 的权重与 `How are` 实验相同，说明在同一次前向计算中，新增的未来 Token 不会影响此前位置。
+Query 0 只能读取位置 0，Query 1 只能读取位置 0～1，Query 2 才能读取全部三个位置。前两个 Query 的权重与 `How are` 实验相同，说明在 `How are you` 这次前向计算中，新增的未来 Token 不会影响此前位置。
 
 ### 对照源码
 
