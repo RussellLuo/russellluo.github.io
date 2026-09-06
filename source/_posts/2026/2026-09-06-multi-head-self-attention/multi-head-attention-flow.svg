@@ -1,0 +1,190 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="970" viewBox="0 0 1000 970" role="img" aria-labelledby="title desc">
+  <title id="title">GPT-2 Multi-Head Attention 的完整数据流</title>
+  <desc id="desc">图从上向下展示 Attention 输入 Z_l 经过 Fused QKV Projection，组织成多个 Head 的 Q、K、V，各 Head 并行完成缩放点积注意力，随后通过 Concat 和 Output Projection 得到 Attention 更新 A_l。浅蓝色 Head 框和蓝色分支突出多头并行计算，白色圆角框表示其他计算动作，无方框的等宽变量表示数据。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+      .module-boundary {
+        fill: #f7f7f5;
+        stroke: #888888;
+        stroke-width: 2;
+      }
+      .module-label {
+        font-size: 16px;
+        font-weight: 700;
+        fill: #555555;
+      }
+      .action-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .focus-box {
+        fill: #eaf3ff;
+        stroke: #075bd7;
+      }
+      .data-label {
+        font-size: 14px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-size: 16px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .focus-value {
+        fill: #075bd7;
+      }
+      .action-title {
+        font-size: 17px;
+        font-weight: 700;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .action-subtitle {
+        font-size: 14px;
+        font-weight: 600;
+        fill: #666666;
+        text-anchor: middle;
+      }
+      .main-arrow {
+        fill: none;
+        stroke: #202020;
+        stroke-width: 3.5;
+        stroke-linecap: square;
+        stroke-linejoin: round;
+      }
+      .branch-line {
+        fill: none;
+        stroke: #075bd7;
+        stroke-width: 2.5;
+        stroke-linecap: square;
+        stroke-linejoin: round;
+      }
+      .arrowhead {
+        fill: #202020;
+      }
+      .branch-head {
+        fill: #075bd7;
+      }
+      .ellipsis {
+        font-size: 28px;
+        font-weight: 700;
+        fill: #888888;
+        text-anchor: middle;
+      }
+    </style>
+  </defs>
+
+  <rect width="1000" height="970" fill="#fcfcfb" />
+
+  <!-- Data: Attention input from the parent Block. -->
+  <text class="ui-text data-label" x="500" y="24">Attention 输入</text>
+  <text class="mono-text data-value" x="500" y="50">Z_l [T,D]</text>
+
+  <!-- Expanded Self-Attention module. -->
+  <rect class="module-boundary" x="70" y="82" width="860" height="800" rx="20" />
+  <text class="ui-text module-label" x="95" y="111">Self-Attention</text>
+
+  <path class="main-arrow" d="M 500 64 V 98" />
+  <polygon class="arrowhead" points="492,98 508,98 500,111" />
+
+  <g transform="translate(0,-20)">
+  <!-- Fused QKV projection. -->
+  <rect class="action-box" x="330" y="137" width="340" height="66" rx="10" />
+  <text class="ui-text action-title" x="500" y="159">Fused QKV Projection</text>
+  <text class="mono-text action-subtitle" x="500" y="187">D → 3D</text>
+
+  <path class="main-arrow" d="M 500 209 V 220" />
+  <polygon class="arrowhead" points="492,220 508,220 500,233" />
+  <text class="ui-text data-label" x="500" y="257">Fused QKV</text>
+  <text class="mono-text data-value" x="500" y="282">[T,3D]</text>
+
+  <!-- Split Q/K/V and expose the Head dimension. -->
+  <path class="main-arrow" d="M 500 296 V 307" />
+  <polygon class="arrowhead" points="492,307 508,307 500,320" />
+  <rect class="action-box" x="330" y="326" width="340" height="66" rx="10" />
+  <text class="ui-text action-title" x="500" y="348">Split + Multi-Head View</text>
+  <text class="mono-text action-subtitle" x="500" y="376">Q / K / V [H,T,D_h]</text>
+
+  <!-- Every Head receives its own Q_h, K_h and V_h. -->
+  <path class="branch-line" d="M 500 398 V 416 H 200" />
+  <path class="branch-line" d="M 500 416 H 800" />
+
+  <path class="branch-line" d="M 200 416 V 427" />
+  <polygon class="branch-head" points="192,427 208,427 200,440" />
+
+  <path class="branch-line" d="M 500 416 V 427" />
+  <polygon class="branch-head" points="492,427 508,427 500,440" />
+
+  <path class="branch-line" d="M 800 416 V 427" />
+  <polygon class="branch-head" points="792,427 808,427 800,440" />
+
+  <!-- Parallel scaled dot-product Attention actions. -->
+  <rect class="action-box focus-box" x="110" y="446" width="180" height="66" rx="10" />
+  <text class="ui-text action-title" x="200" y="468">Head 0</text>
+  <text class="mono-text action-subtitle" x="200" y="496">Q_0, K_0, V_0</text>
+
+  <text class="ui-text ellipsis" x="350" y="489">…</text>
+
+  <rect class="action-box focus-box" x="410" y="446" width="180" height="66" rx="10" />
+  <text class="ui-text action-title" x="500" y="468">Head h</text>
+  <text class="mono-text action-subtitle" x="500" y="496">Q_h, K_h, V_h</text>
+
+  <text class="ui-text ellipsis" x="650" y="489">…</text>
+
+  <rect class="action-box focus-box" x="710" y="446" width="180" height="66" rx="10" />
+  <text class="ui-text action-title" x="800" y="468">Head 11</text>
+  <text class="mono-text action-subtitle" x="800" y="496">Q_11, K_11, V_11</text>
+
+  <!-- Data: one output from each Head. -->
+  <path class="branch-line" d="M 200 518 V 529" />
+  <polygon class="branch-head" points="192,529 208,529 200,542" />
+  <text class="mono-text data-value focus-value" x="200" y="570">O_0 [T,D_h]</text>
+
+  <path class="branch-line" d="M 500 518 V 529" />
+  <polygon class="branch-head" points="492,529 508,529 500,542" />
+  <text class="mono-text data-value focus-value" x="500" y="570">O_h [T,D_h]</text>
+
+  <path class="branch-line" d="M 800 518 V 529" />
+  <polygon class="branch-head" points="792,529 808,529 800,542" />
+  <text class="mono-text data-value focus-value" x="800" y="570">O_11 [T,D_h]</text>
+
+  <!-- Concatenate all Head outputs along the feature dimension. -->
+  <path class="branch-line" d="M 200 590 V 598 H 500" />
+  <path class="branch-line" d="M 500 590 V 598" />
+  <path class="branch-line" d="M 800 590 V 598 H 500" />
+  <path class="branch-line" d="M 500 598 V 609" />
+  <polygon class="branch-head" points="492,609 508,609 500,622" />
+
+  <rect class="action-box" x="350" y="628" width="300" height="58" rx="10" />
+  <text class="ui-text action-title" x="500" y="657">Concat</text>
+
+  <path class="main-arrow" d="M 500 692 V 703" />
+  <polygon class="arrowhead" points="492,703 508,703 500,716" />
+  <text class="ui-text data-label" x="500" y="740">拼接后的 Head 输出</text>
+  <text class="mono-text data-value" x="500" y="765">O_cat [T,D]</text>
+
+  <!-- Learned output projection completes the Attention sublayer. -->
+  <path class="main-arrow" d="M 500 779 V 790" />
+  <polygon class="arrowhead" points="492,790 508,790 500,803" />
+  <rect class="action-box" x="350" y="809" width="300" height="58" rx="10" />
+  <text class="ui-text action-title" x="500" y="838">Output Projection</text>
+  </g>
+
+  <!-- Data: complete Attention update outside the expanded boundary. -->
+  <path class="main-arrow" d="M 500 853 V 887" />
+  <polygon class="arrowhead" points="492,887 508,887 500,900" />
+  <text class="ui-text data-label" x="500" y="923">Attention 更新</text>
+  <text class="mono-text data-value" x="500" y="946">A_l [T,D]</text>
+</svg>
