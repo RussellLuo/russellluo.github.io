@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="550" viewBox="0 0 1600 550" role="img" aria-labelledby="title desc">
+  <title id="title">根据 Token ID 查表取出向量</title>
+  <desc id="desc">Token Embedding Table 包含 50257 行，每行是一个 768 维向量。输入 Token ID 序列为 2437、389，分别对应 How 和带前导空格的 are。查表时取出编号为 2437、389 的两行，按输入顺序组成形状为 [2, 768] 的 Token Embedding。图中用 E_token[ID] 表示对应行的完整向量，不展示具体数值。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+        fill: #555555;
+      }
+      .title {
+        font-size: 30px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .subtitle {
+        font-size: 24px;
+        text-anchor: middle;
+      }
+      .shape-label {
+        font-size: 22px;
+        fill: #707070;
+        text-anchor: middle;
+      }
+      .table-header {
+        font-size: 23px;
+        font-weight: 600;
+        fill: #171717;
+        text-anchor: middle;
+      }
+      .column-title {
+        font-size: 23px;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .cell {
+        font-size: 26px;
+        text-anchor: middle;
+        dominant-baseline: middle;
+      }
+      .focus-text {
+        fill: #075bd7;
+        font-weight: 600;
+      }
+      .table {
+        fill: #ffffff;
+        stroke: #555555;
+        stroke-width: 2.5;
+      }
+      .grid {
+        fill: none;
+        stroke: #ddddda;
+        stroke-width: 1.5;
+      }
+      .selected-row {
+        fill: #eaf3ff;
+        stroke: #075bd7;
+        stroke-width: 2.5;
+      }
+      .lookup-arrow {
+        fill: none;
+        stroke: #075bd7;
+        stroke-width: 3.5;
+        stroke-linejoin: round;
+      }
+      .arrow {
+        fill: none;
+        stroke: #1f1f1f;
+        stroke-width: 3.5;
+      }
+    </style>
+  </defs>
+
+  <rect width="1600" height="550" fill="#fcfcfb" />
+
+  <!-- The parameter table is ordered by Token ID, starting at zero. -->
+  <text class="ui-text title" x="389" y="58">Token Embedding Table</text>
+  <text class="mono-text shape-label" x="389" y="90">[V, D] = [50257, 768]</text>
+  <text class="ui-text table-header" x="148" y="136">Token ID</text>
+  <text class="ui-text table-header" x="471" y="136">768 维向量</text>
+
+  <rect class="table" x="66" y="148" width="646" height="378" rx="12" />
+  <path class="grid" d="M 66 202 H 712 M 66 256 H 712 M 66 310 H 712 M 66 364 H 712 M 66 418 H 712 M 66 472 H 712" />
+  <rect class="selected-row" x="66" y="256" width="646" height="54" />
+  <rect class="selected-row" x="66" y="364" width="646" height="54" />
+  <path class="grid" d="M 230 148 V 526" />
+
+  <g class="mono-text cell">
+    <text x="148" y="175">0</text>
+    <text x="471" y="175">E_token[0]</text>
+    <text x="148" y="229">⋮</text>
+    <text x="471" y="229">⋮</text>
+    <text class="focus-text" x="148" y="283">389</text>
+    <text class="focus-text" x="471" y="283">E_token[389]</text>
+    <text x="148" y="337">⋮</text>
+    <text x="471" y="337">⋮</text>
+    <text class="focus-text" x="148" y="391">2437</text>
+    <text class="focus-text" x="471" y="391">E_token[2437]</text>
+    <text x="148" y="445">⋮</text>
+    <text x="471" y="445">⋮</text>
+    <text x="148" y="499">50256</text>
+    <text x="471" y="499">E_token[50256]</text>
+  </g>
+
+  <!-- The input order determines the output row order. -->
+  <text class="ui-text title" x="1274" y="58">Token IDs</text>
+  <text class="mono-text subtitle" x="1274" y="104">[2437, 389]</text>
+  <path class="arrow" d="M 1274 128 V 160" />
+  <polygon points="1264,160 1274,176 1284,160" fill="#1f1f1f" />
+  <text class="ui-text column-title" x="1274" y="206">按输入顺序排列</text>
+
+  <text class="ui-text title" x="1274" y="247">Token Embedding</text>
+  <rect class="selected-row" x="1100" y="269" width="348" height="168" rx="12" />
+  <path d="M 1100 353 H 1448" fill="none" stroke="#b6cff2" stroke-width="1.5" />
+  <g class="mono-text cell focus-text">
+    <text x="1274" y="311">E_token[2437]</text>
+    <text x="1274" y="395">E_token[389]</text>
+  </g>
+  <text class="mono-text cell" x="1510" y="311" font-size="24" xml:space="preserve">"How"</text>
+  <text class="mono-text cell" x="1510" y="395" font-size="24" xml:space="preserve">" are"</text>
+  <text class="mono-text shape-label" x="1274" y="477">[T, D] = [2, 768]</text>
+
+  <!-- The paths cross without joining; leave a small gap at the crossing. -->
+  <text class="ui-text column-title" x="906" y="244">取出整行</text>
+  <path class="lookup-arrow" d="M 718 283 H 760 L 1054 395 H 1080" />
+  <polygon points="1080,386 1094,395 1080,404" fill="#075bd7" />
+  <path d="M 910 350.18 L 941 341.75" fill="none" stroke="#fcfcfb" stroke-width="13" />
+  <path class="lookup-arrow" d="M 718 391 H 760 L 1054 311 H 1080" />
+  <polygon points="1080,302 1094,311 1080,320" fill="#075bd7" />
+</svg>

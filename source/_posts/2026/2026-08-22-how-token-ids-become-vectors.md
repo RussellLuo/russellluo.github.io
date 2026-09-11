@@ -12,7 +12,7 @@ title: 从零学大模型：Token ID 如何变成向量？
 
 在上一篇[《文本如何变成 Token ID？》](/2026/08/how-text-becomes-token-ids)中，`How are` 经过分词后得到 Token ID 序列 `[2437, 389]`。但 Token ID 只是词表中的整数编号，不能直接参与 GPT-2 的向量和矩阵计算。
 
-本文先打开 GPT-2 的模型黑盒，了解 Embedding（嵌入）在完整前向过程中的位置；再说明 Token Embedding 和 Position Embedding 如何得到 Initial Hidden State（初始隐藏状态）；最后用 llama.cpp 查看 GGUF 中的真实参数和运行时结果。
+本文先打开 GPT-2 的模型黑盒，了解 Embedding（嵌入）的位置；再说明 Token Embedding 与 Position Embedding 如何组成 Initial Hidden State（初始隐藏状态）；最后用 llama.cpp 查看实际参数和计算结果。
 
 ## GPT-2 内部的整体流程
 
@@ -20,11 +20,11 @@ GPT-2 接收 Token ID 序列，依次经过 Embedding、12 个 Transformer Block
 
 ![GPT-2 从 Token ID 到 logits 的内部流程](gpt2-model-overview.svg)
 
-图中蓝色的 Embedding 是本文聚焦的位置；后续文章将依次展开 Transformer Block 的整体骨架、Self-Attention、MLP，以及输出阶段的 Final LayerNorm 与 LM Head。为保持母图简洁，Final LayerNorm 没有单独画出。采样位于 GPT-2 模型边界之外，将在模型内部流程讲完后单独展开。
+本文聚焦图中蓝色的 Embedding。为简化整体流程，图中未单独画出 Final LayerNorm；采样位于 GPT-2 模型之外，将在后续文章中介绍。
 
 ## 从 Embedding 到 Initial Hidden State
 
-本文从 `[2437, 389]` 出发，展开整体流程图中的 Embedding。具体来说，GPT-2 分别根据 Token ID 和 Position ID 查询两张 Embedding Table，再将两个查表结果逐元素相加，得到 Initial Hidden State，即第一个 GPT-2 Block 的输入。整个过程如下：
+GPT-2 分别根据 Token ID 和 Position ID 查询两张 Embedding Table，再将查到的向量逐元素相加，得到 Initial Hidden State，也就是第一个 GPT-2 Block 的输入：
 
 ![Token Embedding 与 Position Embedding 相加得到 Initial Hidden State](embedding-flow.svg)
 
@@ -50,58 +50,26 @@ Token ID 是 Token 在词表中的整数编号。例如：
 
 **Embedding Table 与查表**
 
-Token Embedding Table 可以理解为包含 `V` 行、每行 `D` 个数的参数表：
+设 Token Embedding Table 为 `E_token`，它包含 `V` 行，每行 `D` 个数。对于 `[2437, 389]`，模型取出编号为 `2437` 和 `389` 的两行，按输入顺序组成 `[2, 768]` 的 Token Embedding：
 
-```text
-Token IDs [T]
-→ 在 Token Embedding Table [V, D] 中查表
-→ Token Embedding [T, D]
-```
+![根据 Token ID 取出参数表中的对应行，按输入顺序组成 Token Embedding](embedding-lookup.svg)
 
-设 Token Embedding Table 为 `E_token`，第 `i` 个 Token ID 为 `id_i`，查表过程可以写成：
+设第 `i` 个 Token ID 为 `id_i`，查表过程可以写成：
 
 ```text
 X_token[i] = E_token[id_i]
 ```
 
-对 `[2437, 389]` 来说：
-
-```text
-E_token[2437] → "How"  对应的 768 维向量
-E_token[389]  → " are" 对应的 768 维向量
-```
-
-两个向量按照输入顺序排列，得到：
-
-```text
-Token IDs         [2]
-→ Token Embedding [2, 768]
-```
-
-这个过程叫做 Embedding Lookup（Embedding 查表）。它不是把 `2437` 和 `389` 当作普通数字代入某个公式，而是根据它们选择参数表中的两个向量。
+这个过程称为 Embedding Lookup（Embedding 查表）。
 
 **两种 shape 表示**
 
-shape（形状）表示 Tensor（张量）各个维度的大小。本文在原理部分使用更符合阅读直觉的 shape 顺序：
+shape（形状）表示 Tensor（张量）各个维度的大小。本文原理部分与 llama.cpp / GGML 使用不同的维度顺序，同一个 Token Embedding 可表示为：
 
-```text
-[Token 数量, Hidden 维度] = [T, D]
-```
-
-在后文使用的 llama.cpp / GGML 中，同一个 Tensor 通常显示为：
-
-```text
-{Hidden 维度, Token 数量} = {D, T}
-```
-
-因此，下面两种写法描述的是同一个 Token Embedding：
-
-```text
-数学视角：[2, 768]
-GGML 视角：{768, 2}
-```
-
-维度顺序不同，不代表模型结构不同。
+| 表示方式 | 维度顺序 | 通用 shape | `How are` 示例 |
+|---|---|---|---|
+| 本文原理部分 | Token 数量、Hidden 维度 | `[T, D]` | `[2, 768]` |
+| llama.cpp / GGML | Hidden 维度、Token 数量 | `{D, T}` | `{768, 2}` |
 
 ## Position Embedding
 
@@ -123,17 +91,11 @@ E_token[id] + E_position[0]
 E_token[id] + E_position[2]
 ```
 
-因此，加入 Position Embedding 后，同一个 Token 出现在不同位置时会得到不同的 Initial Hidden State。Position Embedding 本身不直接表示具体语义，它只是把位置信息加入模型输入；后续 Transformer Block 再结合上下文计算每个位置的表示。
+因此，同一个 Token 出现在不同位置时，会得到不同的 Initial Hidden State。
 
-GPT-2 Small 的 Position Embedding Table 包含 1024 个位置，每个位置也是一个 768 维向量：
+GPT-2 Small 的 Position Embedding Table 包含 1024 个位置，每个位置对应一个 768 维向量，即 `[C, D] = [1024, 768]`。根据 `T` 个 Position ID 查表，得到 `[T, D]` 的 Position Embedding。
 
-```text
-Position IDs [T]
-→ 在 Position Embedding Table [C, D] 中查表
-→ Position Embedding [T, D]
-```
-
-`How are` 是一段没有历史上下文的新输入文本，因此两个 Token 的位置编号依次是 `0` 和 `1`：
+`How are` 是一段没有历史上下文的新输入，因此两个 Token 的位置编号依次是 `0` 和 `1`：
 
 | 输入位置 | Token ID | Token | Position ID |
 |---:|---:|---|---:|
@@ -145,7 +107,7 @@ Position ID 和 Token ID 是两套不同的编号：
 - Token ID 用来查询 Token Embedding Table，表示“当前是什么 Token”。
 - Position ID 用来查询 Position Embedding Table，表示“当前位于哪里”。
 
-GPT-2 的 Position Embedding 通过训练学习得到，并使用绝对位置编号。这里的“绝对”表示每个位置使用自己的编号，例如 `0、1、2`。
+GPT-2 的 Position Embedding 通过训练得到，并使用绝对位置编号。这里的“绝对”表示每个位置使用自己的编号，例如 `0、1、2`。
 
 ## Initial Hidden State
 
@@ -172,32 +134,28 @@ Position Embedding    [ 0.01,  0.02, -0.03]
 Initial Hidden State  [ 0.21, -0.08,  0.47]
 ```
 
-GPT-2 Small 实际使用 768 维向量。对于 `How are`：
-
-```text
-Token Embedding        [2, 768]
-+ Position Embedding   [2, 768]
-= Initial Hidden State [2, 768]
-```
+GPT-2 Small 实际使用 768 维向量。对于包含两个 Token 的 `How are`，相加前后的 shape 都是 `[2, 768]`。
 
 > **为什么选择相加？**
 >
-> 这是 GPT-2 延续 Transformer 的架构选择。相加可以在不改变 Hidden size 的情况下，将位置信息加入 Token 表示，使结果直接进入后续 Transformer Block。它不是唯一方案，而是一种保持模型主干维度统一的简洁设计。
+> 相加可以理解为给 Token 向量加上一个由位置决定的偏移。同一个 Token 出现在不同位置时，就会得到不同的输入表示。
+>
+> 两张 Embedding Table 和后续网络会在训练中共同调整，让模型学会利用相加后的表示预测下一个 Token。相加是一种简单的组合方式，同时还能保持向量维度不变。
 
 ## Embedding 参数从哪里来
 
-Token Embedding Table 和 Position Embedding Table 都是 GPT-2 在训练过程中学习得到的模型参数。推理时，推理框架不会重新训练或随机生成它们，而是从模型文件中加载训练好的参数。
+Token Embedding Table 和 Position Embedding Table 都是训练得到的模型参数。推理框架从模型文件中加载它们，用于查表。
 
 从训练到查表的过程可以概括为：
 
 ```text
-训练阶段：得到两张 Embedding Table
-    ↓ 导出并保存
-模型文件：保存训练得到的参数
-    ↓ 推理框架加载
-推理运行时：加载为两个参数 Tensor
-    ↓ 分别根据 Token ID / Position ID 查表
-查表结果：Token Embedding / Position Embedding
+训练得到的两张 Embedding Table
+    ↓ 保存
+模型文件
+    ↓ 加载
+运行时参数 Tensor
+    ↓ 按 Token ID / Position ID 查表
+Token Embedding / Position Embedding
 ```
 
 本文实战使用的模型文件格式是 GGUF。转换为 GGUF 后，GPT-2 中的两个 Embedding 参数对应为：
@@ -207,11 +165,13 @@ transformer.wte → token_embd.weight
 transformer.wpe → position_embd.weight
 ```
 
-GGUF 使用元数据保存模型架构和相关配置，用 Tensor 保存 Embedding Table 等训练参数。加载模型时，llama.cpp 会读取这些 Tensor，供后续查表使用。
+GGUF 用元数据保存模型架构和配置，用 Tensor 保存 Embedding Table 等训练参数。
 
 ## llama.cpp 实战
 
-下面使用 llama.cpp `b10435` 和 GPT-2 Q8_0 模型，查看 GGUF 中的 Embedding 参数、运行时操作与 shape，以及实际 Tensor 数值。基础环境准备见[《LLM 如何逐个生成 Token？》](/2026/08/how-llm-generates-next-token/#环境准备)，`gguf-dump` 的安装方式见[《文本如何变成 Token ID？》](/2026/08/how-text-becomes-token-ids/#查看-GGUF-中的-Tokenizer-数据)。
+下面使用 llama.cpp `b10435` 和 GPT-2 Q8_0 模型，查看 GGUF 中的 Embedding 参数、运行时操作与 shape，以及实际 Tensor 数值。
+
+基础环境准备见[《LLM 如何逐个生成 Token？》](/2026/08/how-llm-generates-next-token/#环境准备)，`gguf-dump` 的安装方式见[《文本如何变成 Token ID？》](/2026/08/how-text-becomes-token-ids/#查看-GGUF-中的-Tokenizer-数据)。
 
 进入 llama.cpp 目录，设置模型路径，并构建本篇使用的工具：
 
@@ -282,9 +242,7 @@ cmake --build build \
 
 ### 查看 Embedding 的计算过程与 shape
 
-`gguf-dump` 只能查看模型文件中的静态参数。要观察 `How are` 实际进入计算图后的 Tensor，可以使用 `llama-eval-callback`。
-
-这个调试程序默认会打印大量中间 Tensor。下面只筛选 Embedding 阶段的三个节点：
+`gguf-dump` 用于查看静态参数，`llama-eval-callback` 则用于观察运行时 Tensor。下面以 `How are` 为输入，筛选 Embedding 阶段的三个节点：
 
 ```bash
 ./build/bin/llama-eval-callback \
@@ -309,13 +267,13 @@ common_debug_cb_eval: inpL = (f32) ADD(
 
 其中 `leaf_5` 对应 Position ID 输入。
 
-这三行分别对应：
+这三个节点分别对应：
 
 1. `GET_ROWS(token_embd.weight, inp_tokens)` 根据 `[2437, 389]` 查询 Token Embedding。
 2. `GET_ROWS(position_embd.weight, leaf_5)` 根据 `[0, 1]` 查询 Position Embedding。
 3. `ADD(embd, pos_embd)` 把两个 `{768,2}` Tensor 相加，得到 `{768,2}` 的 `inpL`。
 
-`inpL` 就是进入第一个 GPT-2 Block 的 Initial Hidden State。日志还显示，查表结果 `embd` 是参与后续计算的 F32 Tensor。
+`inpL` 就是进入第一个 GPT-2 Block 的 Initial Hidden State。日志还显示，查表结果 `embd` 的类型是 F32。
 
 ### 查看 Embedding 与 Initial Hidden State 的数值
 
@@ -397,7 +355,7 @@ inp->tokens = ggml_new_tensor_1d(
 cur = ggml_get_rows(ctx0, tok_embd, inp->tokens);
 ```
 
-因此，从源码到运行结果可以连成同一条路径：
+将源码与运行结果对应起来：
 
 ```text
 inp_tokens {2}
@@ -412,7 +370,7 @@ embd {768,2} + pos_embd {768,2}
 → inpL {768,2}
 ```
 
-这里的 `ggml_get_rows()` 和 `ggml_add()` 首先构造计算图节点；真正的数值计算在实际执行阶段完成。`llama-eval-callback` 展示的是这些节点执行后的 Tensor 类型、shape 和部分数值，计算图与实际执行的完整边界将在后续文章中单独介绍。
+这里的 `ggml_get_rows()` 和 `ggml_add()` 用于构造计算图节点，数值计算在执行计算图时完成。`llama-eval-callback` 展示的是节点执行后的 Tensor 类型、shape 和部分数值。
 
 ## 小结
 
@@ -421,5 +379,3 @@ embd {768,2} + pos_embd {768,2}
 - Token ID 只是词表中的整数编号；GPT-2 将它作为下标，查询训练得到的 Token Embedding Table。
 - GPT-2 同时根据 Position ID 查询 Position Embedding，为每个 Token 加入位置信息。
 - Token Embedding 与 Position Embedding 逐元素相加，得到 Initial Hidden State。
-
-得到的 `inpL` 会进入第一个 GPT-2 Block，成为后续 12 层计算的起点。
