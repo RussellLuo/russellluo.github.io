@@ -14,11 +14,11 @@ title: 从零学大模型：Self-Attention —— 多头注意力
 
 上一篇[《Self-Attention —— 单头注意力》](/2026/08/single-head-self-attention)从一个 Attention Head（注意力头，以下简称 Head）的视角，跟踪了 Q、K、V、Causal Mask、Softmax 和 Value 加权求和。单个 Head 最终为每个 Token 位置产生一个 `D_h` 维输出；在 GPT-2 Small 中，对应的 shape 是 `[T,64]`。
 
-但完整的 Self-Attention 需要产生 `[T,768]` 的 Attention 更新，才能与 GPT-2 Block 的 Residual Connection 主路径相加。中间缺少的部分正是 Multi-Head Attention（多头注意力）：GPT-2 如何并行计算多个 Head，再把它们重新组合成一个 `[T,768]` 的输出？
+完整的 Self-Attention 需要产生 `[T,768]` 的 Attention 更新，才能与 Residual Connection 旁路保留的输入相加。GPT-2 如何并行计算多个 Head，再将它们组合成这一输出？这就是本篇要展开的 Multi-Head Attention（多头注意力）。
 
 ## 为什么需要多个 Head
 
-对于同一个 Token 位置，单个 Head 只会产生一组 Attention 权重。这组权重决定了当前位置从前文各个位置读取多少信息，然后用同一组权重对 Value 进行加权求和。
+对于同一个 Token 位置，单个 Head 只产生一组 Attention 权重，用于对各个可见位置的 Value 加权求和。
 
 但在理解一句话时，当前位置往往需要同时参考多种线索。例如，当 GPT-2 读到：
 
@@ -32,7 +32,7 @@ The cat sat on the mat because it was
 - `cat` 或 `mat`，推测 `it` 指代的对象；
 - `because`，理解前后内容之间的因果关系。
 
-如果只有一个 Head，这些线索需要共同影响同一组 Attention 权重。Multi-Head Attention 则提供多组不同的投影视角：每个 Head 都可以形成自己的 Attention 权重并汇总上下文，最后再把各个 Head 的结果合并起来。
+单个 Head 需要用同一组 Attention 权重综合这些线索。Multi-Head Attention 则让每个 Head 使用各自的投影参数，计算 Attention 权重并汇总上下文，最后合并各个 Head 的结果。
 
 可以把两者的区别简单理解为：
 
@@ -41,7 +41,7 @@ The cat sat on the mat because it was
 多头：同一个位置 → 多组独立的 Attention 权重 → 多份上下文结果 → 合并
 ```
 
-这些“局部搭配”、“指代关系”和“因果关系”只是帮助理解的假想视角，并不表示训练时会为每个 Head 预先指定固定职责。
+上述语言现象只是帮助理解的例子，训练时不会为每个 Head 预先指定固定职责。
 
 > **为什么使用 12 个 Head？**
 >
@@ -49,7 +49,7 @@ The cat sat on the mat because it was
 >
 > [《Attention Is All You Need》](https://proceedings.neurips.cc/paper/7181-attention-is-all-you-need.pdf)指出，多头注意力可以让模型同时关注不同位置和不同表示子空间的信息。原论文也将每个 Head 的维度设为 64，并说明缩小单个 Head 的维度后，多头计算的总成本可以与一个全维度单头保持在相近水平。
 >
-> 因此，`12 × 64` 应理解为 GPT-2 Small 采用的一组架构配置，而不是 Attention 公式推导出的唯一答案。在 Hidden size 固定时，更多 Head 意味着每个 Head 的维度更小，需要在 Head 数量与单个 Head 的表示宽度之间权衡，并不是越多越好。
+> `12 × 64` 是 GPT-2 Small 的架构配置，并非由 Attention 公式唯一确定。在 Hidden size 固定时，更多 Head 意味着每个 Head 的维度更小，需要在 Head 数量与单个 Head 的表示宽度之间权衡，并不是越多越好。
 
 ## 从一个 Head 到完整 Self-Attention
 
@@ -64,13 +64,13 @@ A_l = Attention_l(Z_l)     [T,D]
 
 ![GPT-2 Multi-Head Attention 的完整数据流](multi-head-attention-flow.svg)
 
-单头注意力只是 Multi-Head Attention 的一个局部视角，而不是独立的模型阶段。下面沿图中的数据流依次展开：先看 GPT-2 如何一次产生全部 Head 所需的 Q、K、V，再看各个 Head 如何并行计算，并通过 Concat 和 Output Projection 合并结果。
+单头注意力是完整 Self-Attention 中的一个计算分支。下面沿图中的数据流，依次说明 QKV 投影、多个 Head 的计算，以及结果合并。
 
 ## GPT-2 为什么使用 Fused QKV
 
-Q、K、V 的线性投影都以 `Z_l` 为输入。Fused QKV（融合 QKV 投影）将这三次投影合并为一次：把三组权重和偏置沿输出维拼接，一次得到 `[T,3D]`，再拆分为 Q、K、V。
+Q、K、V 的线性投影都以 `Z_l` 为输入。Fused QKV（融合 QKV 投影）将三组权重和偏置沿输出维拼接，通过一次线性投影得到 `[T,3D]`，再拆分为 Q、K、V。
 
-这只改变参数和计算的组织方式：Q、K、V 仍分别使用，参数量和 Attention 公式不变。**Fused QKV 的主要考虑是计算效率**：把三次共享同一输入的投影合并为一次矩阵乘法，可以减少算子调度和对 `Z_l` 的重复读取，也更利于高效使用底层矩阵乘法内核。
+这种组织方式不改变参数量和 Attention 公式，主要目的是提高计算效率：减少算子调度和对 `Z_l` 的重复读取，并更充分地利用底层矩阵乘法内核。
 
 上一篇从单个 Head 的视角分别写出了 Q、K、V 投影。把 12 个 Head 合在一起看，整体 Q、K、V 都是 `[T,D]`：
 
@@ -126,9 +126,9 @@ QKV [T,2304]
 O_h = softmax(Q_h K_h^T / sqrt(D_h) + M) V_h
 ```
 
-这里的“并行”是指，底层会把 12 个 Head 组织在一起计算，而不是按照 `Head 0 → Head 1 → ...` 的顺序逐个执行。
+12 个 Head 之间没有计算依赖，可以沿 Head 维并行计算。
 
-12 个 Head 使用相同的 Causal Mask 规则，但各自的 Q、K、V 以及由此得到的 Attention 权重通常不同。所有 Head 的输出合在一起是 `[H,T,D_h]`；这让模型可以同时保留多组上下文读取结果，而不必把所有匹配关系压进一组权重。
+12 个 Head 使用相同的 Causal Mask 规则，但各自的 Q、K、V 以及由此得到的 Attention 权重通常不同。所有 Head 的输出合在一起是 `[H,T,D_h]`。
 
 ## Concat：恢复 Hidden 维度
 
@@ -144,7 +144,7 @@ Concat 沿特征维依次拼接同一 Token 位置在 12 个 Head 中的输出�
 O_cat = Concat(O_0, O_1, ..., O_11)    [T,12 × 64] = [T,768]
 ```
 
-Token 数量 `T` 没有改变。这里也不是把 12 个结果逐元素相加：相加仍然只会得到 64 维，Concat 则保留每个 Head 的 64 维结果，把它们组成一个 768 维向量。
+Concat 将 12 个 Head 的 64 维输出拼成一个 768 维向量，Token 数量 `T` 保持不变。若逐元素相加，结果仍然只有 64 维。
 
 以某个 Token 位置 `i` 为例：
 
@@ -198,7 +198,7 @@ A_l
 = O_0 W_O^(0) + O_1 W_O^(1) + ... + O_11 W_O^(11) + b_O
 ```
 
-每个 `W_O^(h)` 都将对应 Head 的 64 维输出映射到全部 768 个输出维度，因此每个 Head 都能影响任意一个输出维度，最终的 `A_l` 也就能够组合 12 个 Head 的结果。
+每个 `W_O^(h)` 都将对应 Head 的 64 维输出映射到 768 维，因此 `A_l` 的每一维都可以融合多个 Head 的信息。
 
 这里的分块只是数学上的等价写法；GPT-2 实际仍使用一组完整的 `W_O [768,768]` 执行一次 Output Projection，而不是分别计算 12 次。
 
@@ -302,9 +302,7 @@ llama.cpp / GGML 显示的维度顺序与前文使用的逻辑 shape 不同，�
 | `kqv-0` | `{64,2,12}` | 12 个 Head 的输出 `[12,2,64]` |
 | `kqv_out-0` | `{768,2}` | Concat 后的 `O_cat [2,768]` |
 
-`Qcur-0`、`Kcur-0` 和 `Vcur-0` 显示，Fused QKV 被组织成了 12 个 64 维 Head；`kqv_out-0` 的 `{768,2}` 则说明 12 个 Head 的结果已经合并回 768 维。
-
-当前源码没有给 Output Projection 的结果设置独立、稳定的回调名，但可以用参数名定位 Block 0 的矩阵乘法和 bias 相加：
+当前源码没有给 Output Projection 的结果设置独立、稳定的回调名，但可以用参数名定位 Block 0 的矩阵乘法及加上偏置的操作：
 
 ```bash
 ./build/bin/llama-eval-callback \
@@ -322,7 +320,7 @@ common_debug_cb_eval:                  node_28 = (f32)    MUL_MAT(blk.0.attn_out
 common_debug_cb_eval:                  node_29 = (f32)        ADD(node_28{768, 2, 1, 1}, blk.0.attn_output.bias{768, 1, 1, 1}}) = {768, 2, 1, 1}
 ```
 
-第一行对应 `O_cat [2,768]` 乘以 `W_O [768,768]`，第二行再加上 `b_O [768]`，直接得到 Output Projection 的 `A_0 [2,768]`。`node_28` 和 `node_29` 是自动生成的节点名，可能随计算图变化；这里通过稳定的 `blk.0.attn_output.weight` 和 `blk.0.attn_output.bias` 识别这两个操作。
+两行分别对应 `O_cat W_O` 和加上偏置 `b_O`，最终得到 `A_0 [2,768]`。`node_28`、`node_29` 是自动生成的节点名，可能随计算图变化，因此这里通过权重和偏置的参数名定位操作。
 
 ### 对比两个 Head 的 Attention 权重
 
@@ -346,7 +344,7 @@ common_debug_cb_eval:                  node_29 = (f32)        ADD(node_28{768, 2
 | Head 0 | 0.9534 | 0.0466 |
 | Head 1 | 0.0049 | 0.9951 |
 
-在 Block 0 的这次输入中，两个 Head 面对相同输入和相同可见范围，却得到明显不同的 Attention 权重。这直接显示它们不是对同一单头结果的简单复制；但只凭这两个数值，还不能给它们赋予固定的语言学含义。
+本次输入中，Block 0 的两个 Head 在相同的可见范围内形成了明显不同的 Attention 权重。但仅凭这次观察，还不能判断它们是否具有固定的语言学分工。
 
 ### 对照源码
 
@@ -362,9 +360,9 @@ cur = build_attn(inp_attn,
         1.0f/sqrtf(float(n_embd_head)), il);
 ```
 
-`n_head_kv` 表示 Key/Value Head 数；GPT-2 中它与 `n_head` 相同，都是 12，因此 Q、K、V 都按 12 个 Head 组织。
+`n_head_kv` 表示 Key/Value Head 数；GPT-2 Small 中它与 `n_head` 相同，都是 12，因此 Q、K、V 都按 12 个 Head 组织。
 
-在 [`build_qkv()`](https://github.com/ggml-org/llama.cpp/blob/b10435/src/llama-graph.cpp#L1592-L1665) 中，GPT-2 进入 Fused QKV 分支。源码先完成一次矩阵乘法和 bias 相加，再通过三个带不同 offset 的 `ggml_view_3d()` 取得 Q、K、V：
+在 [`build_qkv()`](https://github.com/ggml-org/llama.cpp/blob/b10435/src/llama-graph.cpp#L1592-L1665) 中，GPT-2 进入 Fused QKV 分支。源码先完成一次矩阵乘法并加上偏置，再通过三个带不同偏移量的 `ggml_view_3d()` 取得 Q、K、V：
 
 ```cpp
 ggml_tensor * qkv = build_lora_mm(layer.wqkv, cur, layer.wqkv_s);
@@ -378,7 +376,7 @@ Vcur = ggml_view_3d(ctx0, qkv, n_embd_head, n_head_kv, n_tokens,
         /* ... */, ggml_row_size(qkv->type, n_embd_q + n_embd_kv));
 ```
 
-`ggml_view_3d()` 没有再次计算投影，也没有复制出三份新结果；它通过 shape、stride 和 offset 解释 Fused QKV 中的不同区域，并把 Head 维显式组织出来。
+`ggml_view_3d()` 没有再次计算投影，也没有复制出三份新结果；它通过 shape、步长和偏移量访问 Fused QKV 中的不同区域，并把 Head 维显式组织出来。
 
 关闭 Flash Attention 后，[`build_attn_mha()`](https://github.com/ggml-org/llama.cpp/blob/b10435/src/llama-graph.cpp#L2566-L2622) 会在包含 Head 维的 Tensor 上完成上一篇已经验证的 `kq → kq_soft_max → kqv`。得到所有 Head 的 `kqv` 后，同一函数继续完成 Head 合并：
 
@@ -388,7 +386,7 @@ cur = ggml_cont_2d(ctx0, cur,
         cur->ne[0]*cur->ne[1], cur->ne[2]*cur->ne[3]);
 ```
 
-这里没有一个名为 `concat` 的 GGML 节点。`ggml_permute()` 先把 Head 维移到适合拼接的位置，`ggml_cont_2d()` 再把结果整理成连续的二维 Tensor `[D,T]`；它在逻辑上对应 `Concat(O_0,...,O_11) [T,D]`。
+这里没有一个名为 `concat` 的 GGML 节点。`ggml_permute()` 先把 Head 维移到适合拼接的位置，`ggml_cont_2d()` 再把结果整理成连续的二维 Tensor `{D,T}`；它在逻辑上对应 `Concat(O_0,...,O_11) [T,D]`。
 
 最后，[`build_attn()`](https://github.com/ggml-org/llama.cpp/blob/b10435/src/llama-graph.cpp#L2745-L2817) 使用 `wo` 和 `wo_b` 完成 Output Projection：
 
@@ -404,12 +402,12 @@ cur = ggml_add(ctx0, cur, wo_b);
 | 原理概念 | GPT-2 Small 中的形式 | llama.cpp 中的入口 |
 |---|---|---|
 | Fused QKV | `[T,768] → [T,2304]` | `build_qkv()` 中 `build_lora_mm(layer.wqkv, cur, ...)` |
-| 拆分 Q / K / V | `[T,2304] → 3 × [12,T,64]` | 三个不同 offset 的 `ggml_view_3d()` |
+| 拆分 Q / K / V | `[T,2304] → 3 × [12,T,64]` | 三个不同偏移量的 `ggml_view_3d()` |
 | 12 个 Head 的 Attention 计算 | `[12,T,64] → [12,T,T] → [12,T,64]` | `build_attn_mha()` 中 `kq → kq_soft_max → kqv` |
 | Concat | `[12,T,64] → [T,768]` | `ggml_permute()` + `ggml_cont_2d()` |
-| Output Projection | `[T,768] → [T,768]` | `build_attn()` 中 `build_lora_mm(wo, ...)` + bias |
+| Output Projection | `[T,768] → [T,768]` | `build_attn()` 中 `build_lora_mm(wo, ...)` + 偏置 |
 
-这些 C++ 调用只是在构建 GGML 计算图，定义节点、依赖关系和 Tensor shape，并未立即执行数值计算。前面的回调输出才来自后端执行后的 Tensor；完整的建图与执行调用链留到后续文章。
+这些 C++ 调用负责构建 GGML 计算图，定义节点、依赖关系和 Tensor shape；数值计算由后端执行，前面的回调展示了执行结果。
 
 ## 小结
 

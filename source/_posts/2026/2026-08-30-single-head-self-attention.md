@@ -12,9 +12,9 @@ title: 从零学大模型：Self-Attention —— 单头注意力
 
 ![GPT-2 中 Self-Attention 的位置](gpt2-model-overview.svg)
 
-在上一篇[《Hidden State 如何流过 GPT-2 Block？》](/2026/08/how-hidden-state-flows-through-gpt2-block)中，我们只跟踪了 Self-Attention 在 Block 中的输入和输出：LayerNorm 处理后的 Hidden State 进入 Self-Attention，产生的 Attention 更新再通过 Residual Connection 加回原 Hidden State。本篇继续展开内部计算，观察它如何读取可见上下文。
+上一篇[《Hidden State 如何流过 GPT-2 Block？》](/2026/08/how-hidden-state-flows-through-gpt2-block)介绍了 Self-Attention 的输入和输出：LayerNorm 处理后的 Hidden State 进入 Self-Attention，产生的 Attention 更新再通过 Residual Connection 加回原 Hidden State。本文进一步展开它如何读取可见上下文。
 
-GPT-2 同时使用多个 Attention Head（注意力头，以下简称 Head）。本文先说明单个 Head 与整体 Self-Attention 的关系，再以 `How are` 中的 `" are"` 为例，完整跟踪从 Q、K、V，到匹配分数、Causal Mask（因果掩码）、Softmax，再到 Value 加权求和的过程。单头视角不是额外的执行阶段，而是从多头并行计算中抽出的一条分支。
+GPT-2 使用多个 Attention Head（注意力头，以下简称 Head）并行计算。本文以 `How are` 中的 `" are"` 为例，跟踪单个 Head 从 Q、K、V 到 Value 加权求和的过程。
 
 ## 为什么需要 Self-Attention
 
@@ -38,11 +38,11 @@ GPT-2 同时使用多个 Attention Head（注意力头，以下简称 Head）。
 
 Self-Attention 将上下文读取拆成三个部分：
 
-1. Causal Mask 决定当前位置可以读取哪些位置。
+1. Causal Mask（因果掩码）决定当前位置可以读取哪些位置。
 2. Q、K 的匹配分数决定各个可见位置应该获得多大权重。
 3. 模型使用这些权重对 V 加权求和，得到包含上下文信息的新向量。
 
-如果始终以相同权重对所有可见位置的 V 加权求和，模型就无法根据当前输入决定更侧重哪些位置。Self-Attention 则会根据当前 Hidden State 动态计算 Attention 权重，有选择地读取可见位置的信息。
+如果始终以相同权重汇总所有可见位置的 V，模型就无法根据输入调整关注重点。Self-Attention 会动态计算 Attention 权重，有选择地读取上下文。
 
 > **为什么 Transformer 使用 Self-Attention？**
 >
@@ -85,7 +85,7 @@ D_h = D / 12 = 64
 
 ![Z_l 中“ are”位置向量通过一个 Attention Head 读取可见上下文](self-attention-context-reading.svg)
 
-当前 Attention 的输入是 `Z_l [T,D]`。在这个例子中，它包含 `"How"` 和 `" are"` 两个 Token 位置；真正进入当前 Head 的分别是位置向量 `z_(l,0) [D]` 和 `z_(l,1) [D]`。
+本例中，Attention 输入 `Z_l [T,D]` 包含两个位置向量：`"How"` 对应的 `z_(l,0) [D]` 和 `" are"` 对应的 `z_(l,1) [D]`。
 
 为了与图中的符号对应，下面用下标 `0`、`1` 表示 Token 位置，用上标 `(h)` 表示当前观察的第 `h` 个 Head。
 
@@ -116,7 +116,7 @@ V_h = Z_l W_V^(h) + b_V^(h)
 
 `Z_l W_Q^(h)` 表示矩阵乘法；下文中，相邻书写的矩阵同样表示矩阵乘法。
 
-当前 Head 使用三组训练得到的投影参数：权重矩阵 `W_Q^(h)`、`W_K^(h)`、`W_V^(h)`，以及偏置向量 `b_Q^(h)`、`b_K^(h)`、`b_V^(h)`。这些参数由当前 Head 的所有 Token 位置共用；Q、K、V 则由各位置的当前输入计算，会随输入变化。
+同一个 Head 的所有 Token 位置共用这三组投影参数。参数通过训练得到；Q、K、V 则由各位置的当前输入计算，随输入变化。
 
 三组投影参数及其输出的 shape 是：
 
@@ -188,7 +188,7 @@ Query "How"      0       -∞
 
 Causal Mask 会加到缩放后的分数上：允许读取的位置加 `0`，不改变分数；未来位置加 `-∞`，经过 Softmax 后权重变成 `0`。因此，`q_0^(h)` 只能读取 `"How"`，`q_1^(h)` 可以读取 `"How"` 和 `" are"`。
 
-扩展到更长序列时，Causal Mask 会形成同样的下三角结构：即使一次输入整段文本，每个位置也只能使用自身及此前位置的信息。
+扩展到更长序列时，可见区域同样呈下三角结构：每个位置只能读取自身及此前位置。
 
 > **Causal Mask 能代替 Position Embedding 吗？**
 >
@@ -247,7 +247,7 @@ P_h[i,j]          = p_(i,j)
 O_h[i,:]          = o_i^(h)
 ```
 
-因此，当前 `q_1^(h)` 对应 `P_h` 中索引为 `1` 的第二行，输出 `o_1^(h)` 对应 `O_h` 中索引为 `1` 的第二行。
+`q_1^(h)` 的 Attention 权重对应 `P_h` 的第二行，输出 `o_1^(h)` 对应 `O_h` 的第二行。
 
 将三步合并，可得 Scaled Dot-Product Attention 的公式：
 
@@ -309,7 +309,7 @@ M = [
 ]
 ```
 
-将 `M` 加到缩放后的分数上，未来位置才会变成 `-∞`：
+将 `M` 加到缩放后的分数上，未来位置对应的分数变为 `-∞`：
 
 ```text
 S = Q K^T / sqrt(4) + M = [
@@ -353,7 +353,7 @@ O ≈ [
 
 ## 单头 shape 主线
 
-训练完成后，`W_Q^(h)`、`W_K^(h)`、`W_V^(h)` 及其偏置作为模型参数，在推理时保持不变。运行时，当前 `Z_l` 依次产生 `Q_h`、`K_h`、`V_h`、匹配分数、Attention 权重和 `O_h`，这些 Tensor 都会随输入、Block 或 Head 发生变化。因此，“Attention 权重”不是保存在模型文件中的固定参数。
+推理时，训练得到的投影参数保持不变。当前输入 `Z_l` 先生成 `Q_h`、`K_h`、`V_h`，再计算匹配分数、Attention 权重和输出 `O_h`。因此，Attention 权重是运行时计算的结果，不是模型文件中的固定参数。
 
 Causal Mask 稍有不同：它的因果规则固定，但具体 Tensor 由当前序列长度和位置关系确定。
 
@@ -412,7 +412,7 @@ cmake --build build \
 }
 ```
 
-当前模型的 Hidden size 为 `768`，包含 `12` 个 Head，因此每个 Head 的维度为 `768 / 12 = 64`。本文只选择 `Block 0 / Head 0`，因此后面的 Q、K、V 和输出都按单头逻辑 shape `[T,64]` 阅读，不比较不同 Head。
+每个 Head 的维度为 `768 / 12 = 64`。后续选取 `Block 0 / Head 0`，按单头逻辑 shape `[T,64]` 理解 Q、K、V 和输出。
 
 ### 查看运行时 shape
 
@@ -527,7 +527,7 @@ o_1^(0)
 [-0.1080, 0.0509, 0.0538, ...]
 ```
 
-上面的数值只保留了 4 位小数，因此手算结果与回调输出存在约 `0.0001` 的舍入误差。在这一误差范围内，两者结果一致，也说明 Attention 权重确实作用在 Value 上，并产生 Head 0 的输出 `O_h [2,64]`。
+用保留 4 位小数的数值手算，结果与 `kqv-0` 的前 3 维相差约 `0.0001`。两者在舍入误差范围内一致，与前面的 Value 加权公式相符。
 
 **改变输入。** 最后把输入扩展为三个 Token `How are you`，再次查看 `kq_soft_max-0`：
 
@@ -548,7 +548,7 @@ Query 1 / " are" = [0.9534, 0.0466, 0.0000]
 Query 2 / " you" = [0.8849, 0.0563, 0.0588]
 ```
 
-Query 0 只能读取位置 0，Query 1 只能读取位置 0～1，Query 2 才能读取全部三个位置。前两个 Query 的权重与 `How are` 实验相同，说明在 `How are you` 这次前向计算中，新增的未来 Token 不会影响此前位置。
+Query 0 只能读取位置 0，Query 1 只能读取位置 0～1，Query 2 才能读取全部三个位置。前两个 Query 的权重与 `How are` 实验相同，说明新增的未来 Token 没有影响此前位置的 Attention 权重。
 
 ### 对照源码
 
@@ -564,7 +564,7 @@ cur = build_attn(inp_attn,
         1.0f/sqrtf(float(n_embd_head)), il);
 ```
 
-[`build_qkv()`](https://github.com/ggml-org/llama.cpp/blob/b10435/src/llama-graph.cpp#L1592-L1665) 产生包含全部 Head 的 `Qcur`、`Kcur` 和 `Vcur`，随后由 `build_attn()` 继续处理。本文只从这些 Tensor 中选择 Head 0，把它们当作单头计算的输入；GPT-2 如何一次产生并组织所有 Head 的 Q、K、V 留到下一篇。
+[`build_qkv()`](https://github.com/ggml-org/llama.cpp/blob/b10435/src/llama-graph.cpp#L1592-L1665) 产生包含全部 Head 的 `Qcur`、`Kcur` 和 `Vcur`，随后由 `build_attn()` 继续处理。
 
 [`build_attn()`](https://github.com/ggml-org/llama.cpp/blob/b10435/src/llama-graph.cpp#L2778-L2793) 再通过 `cpy_k()`、`cpy_v()` 把当前 K、V 写入 KV Cache，并用 `get_k()`、`get_v()` 取得 KV Cache 视图，交给 `build_attn_mha()`。
 
@@ -587,7 +587,7 @@ ggml_tensor * kqv = ggml_mul_mat(ctx0, v, kq);
 | 缩放 + Causal Mask + Softmax | `ggml_soft_max_ext(..., kq_mask, kq_scale, ...)` → `kq_soft_max` |
 | `P_h V_h` | `ggml_mul_mat(v, kq)` → `kqv` |
 
-虽然函数名是 `build_attn_mha()`，Q、K、V Tensor 也保留了 12 个 Head，但上面三步会沿 Head 维分别计算；只取 Head 0，就得到本文推导的单头公式。
+`build_attn_mha()` 中的这三步沿 Head 维分别计算，取出 Head 0 后即可与前文的单头公式对应。
 
 源码没有为缩放、Causal Mask 和 Softmax 分别创建三个节点。`ggml_soft_max_ext()` 同时接收 `kq_scale` 和 `kq_mask`，在一个操作中完成这三步。上述调用只是在构建 GGML 计算图，真正的数值由后端执行。
 
@@ -595,6 +595,6 @@ ggml_tensor * kqv = ggml_mul_mat(ctx0, v, kq);
 
 本文以 `"How are"` 中的 `" are"` 为例，从单个 Head 的视角说明了 Self-Attention 如何读取可见上下文：
 
-- 一个 Attention Head 用 Query 与 Key 计算分数，经缩放和 Causal Mask 排除未来位置，再由 Softmax 得到 Attention 权重，最后对 Value 加权求和。
+- 一个 Attention Head 用 Query 与 Key 计算分数，缩放后用 Causal Mask 排除未来位置，再通过 Softmax 得到 Attention 权重，最后对 Value 加权求和。
 - Q、K、V、Attention 权重和 Head 输出都由当前输入动态产生；训练得到并保存在模型文件中的是投影参数，而不是固定的 Attention 结果。
 - GPT-2 Small 并行计算 12 个 Head；单个 Head 输出 `O_h [T,64]`，还不是完整的 Attention 更新 `A_l [T,768]`。
