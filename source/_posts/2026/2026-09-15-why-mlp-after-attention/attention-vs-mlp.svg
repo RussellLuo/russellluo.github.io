@@ -1,0 +1,218 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">Attention 与 MLP 的功能对比</title>
+  <desc id="desc">Attention 一侧分别展示位置 0 读取自身的信息、位置 1 读取位置 0 和 1 的信息、位置 i 读取位置 0 到 i 的信息。MLP 一侧展示 H_l[0]、H_l[1] 和 H_l[i] 各自经过同一个 MLP_l，得到对应的位置更新。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+      .panel {
+        fill: #f7f7f5;
+        stroke: #b8b8b3;
+        stroke-width: 2;
+      }
+      .panel-title {
+        font-size: 23px;
+        font-weight: 750;
+        text-anchor: middle;
+      }
+      .panel-subtitle {
+        font-size: 16px;
+        font-weight: 650;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .column-label {
+        font-size: 14px;
+        font-weight: 700;
+        fill: #666666;
+        text-anchor: middle;
+      }
+      .box-label {
+        font-size: 17px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .box-value {
+        font-size: 15px;
+        font-weight: 650;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .token-zero {
+        fill: #eaf3ff;
+        stroke: #497fb9;
+        stroke-width: 2.2;
+      }
+      .token-one {
+        fill: #fff5e6;
+        stroke: #b98532;
+        stroke-width: 2.2;
+      }
+      .token-current {
+        fill: #eef7ef;
+        stroke: #66946b;
+        stroke-width: 2.2;
+      }
+      .position-box {
+        fill: #ffffff;
+        stroke: #888888;
+        stroke-width: 2;
+      }
+      .chip-label {
+        font-size: 14px;
+        font-weight: 750;
+        text-anchor: middle;
+      }
+      .attention-box {
+        fill: #ffffff;
+        stroke: #3f3f3f;
+        stroke-width: 2.4;
+      }
+      .context-box {
+        fill: #ffffff;
+        stroke: #3f3f3f;
+        stroke-width: 2.4;
+      }
+      .mlp-box {
+        fill: #ffffff;
+        stroke: #3f3f3f;
+        stroke-width: 2.4;
+      }
+      .update-box {
+        fill: #ffffff;
+        stroke: #888888;
+        stroke-width: 2;
+      }
+      .main-arrow {
+        fill: none;
+        stroke: #3f3f3f;
+        stroke-width: 2.8;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        marker-end: url(#arrow-dark);
+      }
+    </style>
+
+    <marker id="arrow-dark" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#3f3f3f" />
+    </marker>
+  </defs>
+
+  <rect width="1200" height="520" fill="#fcfcfb" />
+
+  <!-- Attention: each position reads information from its visible range. -->
+  <rect class="panel" x="30" y="20" width="555" height="480" rx="22" />
+  <text class="ui-text panel-title" x="307.5" y="58">Attention</text>
+  <text class="ui-text panel-subtitle" x="307.5" y="84">每个位置读取可见范围内的信息</text>
+
+  <g transform="translate(0,12)">
+  <text class="ui-text column-label" x="87.5" y="116">当前位置</text>
+  <text class="ui-text column-label" x="175" y="116">可见位置</text>
+  <text class="ui-text column-label" x="305" y="116">按权重聚合</text>
+  <text class="ui-text column-label" x="495" y="116">位置表示</text>
+
+  <!-- Position 0 reads only itself. -->
+  <rect class="position-box" x="45" y="140" width="85" height="50" rx="11" />
+  <text class="ui-text box-value" x="87.5" y="171">位置 0</text>
+  <circle class="token-zero" cx="175" cy="165" r="12" />
+  <text class="ui-text chip-label" x="175" y="170">0</text>
+  <path class="main-arrow" d="M 187 165 H 238" />
+  <rect class="attention-box" x="245" y="132" width="120" height="66" rx="13" />
+  <text class="ui-text box-label" x="305" y="171">Attention</text>
+  <path class="main-arrow" d="M 365 165 H 418" />
+  <rect class="context-box" x="425" y="132" width="140" height="66" rx="13" />
+  <text class="ui-text box-value" x="495" y="159">位置 0 的表示</text>
+  <rect x="445" y="177" width="100" height="9" rx="4.5" fill="#79a9dc" />
+
+  <!-- Position 1 reads positions 0 and 1. -->
+  <rect class="position-box" x="45" y="260" width="85" height="50" rx="11" />
+  <text class="ui-text box-value" x="87.5" y="291">位置 1</text>
+  <circle class="token-zero" cx="175" cy="272" r="12" />
+  <text class="ui-text chip-label" x="175" y="277">0</text>
+  <circle class="token-one" cx="175" cy="298" r="12" />
+  <text class="ui-text chip-label" x="175" y="303">1</text>
+  <path class="main-arrow" d="M 187 272 C 210 272, 220 275, 238 275" />
+  <path class="main-arrow" d="M 187 298 C 210 298, 220 295, 238 295" />
+  <rect class="attention-box" x="245" y="252" width="120" height="66" rx="13" />
+  <text class="ui-text box-label" x="305" y="291">Attention</text>
+  <path class="main-arrow" d="M 365 285 H 418" />
+  <rect class="context-box" x="425" y="252" width="140" height="66" rx="13" />
+  <text class="ui-text box-value" x="495" y="279">位置 1 的表示</text>
+  <rect x="445" y="297" width="50" height="9" rx="4.5" fill="#79a9dc" />
+  <rect x="495" y="297" width="50" height="9" rx="4.5" fill="#d6a85c" />
+
+  <!-- Position i reads positions 0 through i. -->
+  <rect class="position-box" x="45" y="380" width="85" height="50" rx="11" />
+  <text class="ui-text box-value" x="87.5" y="411">位置 i</text>
+  <circle class="token-zero" cx="175" cy="381" r="12" />
+  <text class="ui-text chip-label" x="175" y="386">0</text>
+  <circle class="token-one" cx="175" cy="405" r="12" />
+  <text class="ui-text chip-label" x="175" y="410">1</text>
+  <circle class="token-current" cx="175" cy="429" r="12" />
+  <text class="ui-text chip-label" x="175" y="434">i</text>
+  <path class="main-arrow" d="M 187 381 C 210 381, 220 385, 238 385" />
+  <path class="main-arrow" d="M 187 405 H 238" />
+  <path class="main-arrow" d="M 187 429 C 210 429, 220 425, 238 425" />
+  <rect class="attention-box" x="245" y="372" width="120" height="66" rx="13" />
+  <text class="ui-text box-label" x="305" y="411">Attention</text>
+  <path class="main-arrow" d="M 365 405 H 418" />
+  <rect class="context-box" x="425" y="372" width="140" height="66" rx="13" />
+  <text class="ui-text box-value" x="495" y="399">位置 i 的表示</text>
+  <rect x="445" y="417" width="34" height="9" rx="4.5" fill="#79a9dc" />
+  <rect x="479" y="417" width="33" height="9" fill="#d6a85c" />
+  <rect x="512" y="417" width="33" height="9" rx="4.5" fill="#80aa84" />
+  </g>
+
+  <!-- MLP: each position follows an independent path with shared parameters. -->
+  <rect class="panel" x="615" y="20" width="555" height="480" rx="22" />
+  <text class="ui-text panel-title" x="892.5" y="58">MLP</text>
+  <text class="ui-text panel-subtitle" x="892.5" y="84">每个位置独立执行同一个函数</text>
+
+  <g transform="translate(0,12)">
+  <text class="ui-text column-label" x="710" y="116">接收 H_l</text>
+  <text class="ui-text column-label" x="890" y="116">共享参数</text>
+  <text class="ui-text column-label" x="1070" y="116">位置更新</text>
+
+  <!-- Position 0. -->
+  <rect class="context-box" x="640" y="132" width="140" height="66" rx="13" />
+  <text class="mono-text box-label" x="710" y="159">H_l[0]</text>
+  <rect x="660" y="177" width="100" height="9" rx="4.5" fill="#79a9dc" />
+  <path class="main-arrow" d="M 780 165 H 823" />
+  <rect class="mlp-box" x="830" y="132" width="120" height="66" rx="13" />
+  <text class="mono-text box-label" x="890" y="171">MLP_l</text>
+  <path class="main-arrow" d="M 950 165 H 993" />
+  <rect class="update-box" x="1000" y="132" width="140" height="66" rx="13" />
+  <text class="mono-text box-label" x="1070" y="171">M_l[0]</text>
+
+  <!-- Position 1. -->
+  <rect class="context-box" x="640" y="252" width="140" height="66" rx="13" />
+  <text class="mono-text box-label" x="710" y="279">H_l[1]</text>
+  <rect x="660" y="297" width="50" height="9" rx="4.5" fill="#79a9dc" />
+  <rect x="710" y="297" width="50" height="9" rx="4.5" fill="#d6a85c" />
+  <path class="main-arrow" d="M 780 285 H 823" />
+  <rect class="mlp-box" x="830" y="252" width="120" height="66" rx="13" />
+  <text class="mono-text box-label" x="890" y="291">MLP_l</text>
+  <path class="main-arrow" d="M 950 285 H 993" />
+  <rect class="update-box" x="1000" y="252" width="140" height="66" rx="13" />
+  <text class="mono-text box-label" x="1070" y="291">M_l[1]</text>
+
+  <!-- Position i. -->
+  <rect class="context-box" x="640" y="372" width="140" height="66" rx="13" />
+  <text class="mono-text box-label" x="710" y="399">H_l[i]</text>
+  <rect x="660" y="417" width="34" height="9" rx="4.5" fill="#79a9dc" />
+  <rect x="694" y="417" width="33" height="9" fill="#d6a85c" />
+  <rect x="727" y="417" width="33" height="9" rx="4.5" fill="#80aa84" />
+  <path class="main-arrow" d="M 780 405 H 823" />
+  <rect class="mlp-box" x="830" y="372" width="120" height="66" rx="13" />
+  <text class="mono-text box-label" x="890" y="411">MLP_l</text>
+  <path class="main-arrow" d="M 950 405 H 993" />
+  <rect class="update-box" x="1000" y="372" width="140" height="66" rx="13" />
+  <text class="mono-text box-label" x="1070" y="411">M_l[i]</text>
+  </g>
+</svg>

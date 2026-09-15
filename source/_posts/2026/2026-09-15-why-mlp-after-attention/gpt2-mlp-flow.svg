@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="810" viewBox="0 0 1000 810" role="img" aria-labelledby="title desc">
+  <title id="title">GPT-2 MLP 的完整数据流</title>
+  <desc id="desc">图从上向下展示 Hidden State H_l 先经过 MLP 框外的 LayerNorm，得到归一化后的 MLP 输入 Z_l。MLP 包含一个隐藏层和一个输出层：Up Projection 与 GELU 共同完成隐藏层计算，U_l 是激活前的值，G_l 是激活后的隐藏层输出，维度均为 3072；Down Projection 完成输出层计算，生成 768 维 MLP 更新 M_l。侧边用相同样式的括号依次标出输入层、隐藏层和输出层：输入层对应 Z_l，隐藏层对应 Up Projection 和 GELU，输出层对应 Down Projection。G_l 和 M_l 作为各层的计算结果单独标注。</desc>
+
+  <defs>
+    <style>
+      .ui-text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .mono-text {
+        font-family: "SFMono-Regular", Menlo, Consolas, monospace;
+      }
+      .module-boundary {
+        fill: #f7f7f5;
+        stroke: #888888;
+        stroke-width: 2;
+      }
+      .module-label {
+        font-size: 16px;
+        font-weight: 700;
+        fill: #555555;
+      }
+      .layer-bracket {
+        fill: none;
+        stroke: #888888;
+        stroke-width: 1.6;
+      }
+      .layer-label {
+        font-size: 15px;
+        font-weight: 600;
+        fill: #555555;
+      }
+      .action-box {
+        fill: #ffffff;
+        stroke: #202020;
+        stroke-width: 2.5;
+      }
+      .action-title {
+        font-size: 17px;
+        font-weight: 700;
+        text-anchor: middle;
+      }
+      .action-subtitle {
+        font-size: 14px;
+        font-weight: 600;
+        fill: #666666;
+        text-anchor: middle;
+      }
+      .data-label {
+        font-size: 14px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .data-value {
+        font-size: 16px;
+        font-weight: 700;
+        fill: #555555;
+        text-anchor: middle;
+      }
+      .main-arrow {
+        fill: none;
+        stroke: #202020;
+        stroke-width: 3.5;
+        stroke-linecap: square;
+        stroke-linejoin: round;
+      }
+      .arrowhead {
+        fill: #202020;
+      }
+    </style>
+  </defs>
+
+  <rect width="1000" height="810" fill="#fcfcfb" />
+
+  <!-- Data: Hidden State entering the MLP stage. -->
+  <text class="ui-text data-label" x="500" y="22">MLP 前 Hidden State</text>
+  <text class="mono-text data-value" x="500" y="45">H_l [T,D] = [T,768]</text>
+
+  <!-- Action: LayerNorm remains outside the MLP boundary. -->
+  <path class="main-arrow" d="M 500 58 V 72" />
+  <polygon class="arrowhead" points="492,72 508,72 500,84" />
+  <rect class="action-box" x="400" y="90" width="200" height="50" rx="10" />
+  <text class="ui-text action-title" x="500" y="112">LayerNorm</text>
+  <text class="ui-text action-subtitle" x="500" y="131">Pre-Norm</text>
+
+  <!-- Data: LayerNorm output and normalized input to the MLP. -->
+  <path class="main-arrow" d="M 500 146 V 157" />
+  <polygon class="arrowhead" points="492,157 508,157 500,169" />
+  <text class="ui-text data-label" x="500" y="192">MLP 输入（归一化后）</text>
+  <text class="mono-text data-value" x="500" y="214">Z_l [T,D] = [T,768]</text>
+
+  <!-- Expanded MLP module. -->
+  <rect class="module-boundary" x="210" y="242" width="580" height="484" rx="20" />
+  <text class="ui-text module-label" x="235" y="271">MLP</text>
+
+  <!-- Matching brackets identify the input data and each subsequent layer's operations; outputs are labeled separately. -->
+  <g aria-label="输入层：归一化后的 MLP 输入 Z_l">
+    <path class="layer-bracket" d="M 804 174 H 816 V 222 H 804" />
+    <text class="ui-text layer-label" x="834" y="204">输入层</text>
+  </g>
+  <g aria-label="隐藏层：Up Projection 和 GELU">
+    <path class="layer-bracket" d="M 804 287 H 816 V 509 H 804" />
+    <text class="ui-text layer-label" x="834" y="404">隐藏层</text>
+  </g>
+  <g aria-label="输出层：Down Projection">
+    <path class="layer-bracket" d="M 804 623 H 816 V 681 H 804" />
+    <text class="ui-text layer-label" x="834" y="658">输出层</text>
+  </g>
+
+  <path class="main-arrow" d="M 500 226 V 268" />
+  <polygon class="arrowhead" points="492,268 508,268 500,280" />
+
+  <rect class="action-box" x="350" y="287" width="300" height="58" rx="10" />
+  <text class="ui-text action-title" x="500" y="312">Up Projection</text>
+  <text class="mono-text action-subtitle" x="500" y="335">768 → 3072</text>
+
+  <path class="main-arrow" d="M 500 351 V 362" />
+  <polygon class="arrowhead" points="492,362 508,362 500,374" />
+  <text class="ui-text data-label" x="500" y="395">隐藏层激活前的值</text>
+  <text class="mono-text data-value" x="500" y="417">U_l [T,M] = [T,3072]</text>
+
+  <path class="main-arrow" d="M 500 429 V 440" />
+  <polygon class="arrowhead" points="492,440 508,440 500,452" />
+  <rect class="action-box" x="400" y="459" width="200" height="50" rx="10" />
+  <text class="ui-text action-title" x="500" y="490">GELU</text>
+
+  <path class="main-arrow" d="M 500 515 V 526" />
+  <polygon class="arrowhead" points="492,526 508,526 500,538" />
+  <text class="ui-text data-label" x="500" y="559">隐藏层输出（激活后）</text>
+  <text class="mono-text data-value" x="500" y="581">G_l [T,M] = [T,3072]</text>
+
+  <path class="main-arrow" d="M 500 593 V 604" />
+  <polygon class="arrowhead" points="492,604 508,604 500,616" />
+  <rect class="action-box" x="350" y="623" width="300" height="58" rx="10" />
+  <text class="ui-text action-title" x="500" y="648">Down Projection</text>
+  <text class="mono-text action-subtitle" x="500" y="671">3072 → 768</text>
+
+  <!-- Data: MLP output sits outside the module boundary. -->
+  <path class="main-arrow" d="M 500 687 V 732" />
+  <polygon class="arrowhead" points="492,732 508,732 500,744" />
+  <text class="ui-text data-label" x="500" y="765">MLP 输出（更新）</text>
+  <text class="mono-text data-value" x="500" y="787">M_l [T,D] = [T,768]</text>
+</svg>

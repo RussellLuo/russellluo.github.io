@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="415" viewBox="0 90 1200 415" role="img" aria-labelledby="title desc">
+  <title id="title">GPT-2 MLP 的扩展、非线性与再组合</title>
+  <desc id="desc">以单个 Token 位置为例，MLP 接收经过 LayerNorm 的 768 维输入。Up Projection 将输入加权组合并加上偏置，得到 3072 个中间值；GELU 逐元素进行非线性变换，维度仍为 3072；Down Projection 将变换后的结果加权组合并加上偏置，生成 768 维 MLP 更新。两列 3072 维向量分别表示同一个隐藏层激活前后的数值。圆点表示向量分量，数量和连线仅作示意；颜色变化用于示意 GELU 前后各分量数值的变化。</desc>
+  <defs>
+    <style>
+      text {
+        font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        fill: #171717;
+      }
+      .operation { font-size: 19px; font-weight: 700; text-anchor: middle; }
+      .explanation { font-size: 17px; fill: #666666; text-anchor: middle; }
+      .data-label { font-size: 18px; font-weight: 650; text-anchor: middle; }
+      .dimension { font-size: 18px; font-weight: 650; fill: #555555; text-anchor: middle; }
+      .vector-node { fill: #e6e6e2; stroke: #666666; stroke-width: 1.8; }
+      .projection { fill: none; stroke: #aab5c0; stroke-width: 1.25; stroke-opacity: 0.55; }
+      .element-arrow { fill: none; stroke: #9bafc4; stroke-width: 1.4; marker-end: url(#arrow-blue); }
+    </style>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#9bafc4" />
+    </marker>
+  </defs>
+
+  <rect y="90" width="1200" height="415" fill="#fcfcfb" />
+
+  <text class="operation" x="320" y="132">Up Projection</text>
+  <text class="explanation" x="320" y="157">加权组合</text>
+  <text class="operation" x="600" y="132">GELU</text>
+  <text class="explanation" x="600" y="157">逐元素非线性变换</text>
+  <text class="operation" x="894" y="132">Down Projection</text>
+  <text class="explanation" x="894" y="157">加权组合</text>
+
+  <!-- All shown input components contribute to every shown intermediate component. -->
+  <g class="projection" aria-label="Up Projection 的加权组合">
+    <path d="M 125 272 C 230 272, 330 190, 434 190" />
+    <path d="M 125 272 C 230 272, 330 210, 434 210" />
+    <path d="M 125 272 C 230 272, 330 230, 434 230" />
+    <path d="M 125 272 C 230 272, 330 250, 434 250" />
+    <path d="M 125 272 C 230 272, 330 270, 434 270" />
+    <path d="M 125 272 C 230 272, 330 290, 434 290" />
+    <path d="M 125 272 C 230 272, 330 310, 434 310" />
+    <path d="M 125 272 C 230 272, 330 330, 434 330" />
+    <path d="M 125 272 C 230 272, 330 350, 434 350" />
+    <path d="M 125 272 C 230 272, 330 370, 434 370" />
+    <path d="M 125 272 C 230 272, 330 390, 434 390" />
+    <path d="M 125 272 C 230 272, 330 410, 434 410" />
+    <path d="M 125 300 C 230 300, 330 190, 434 190" />
+    <path d="M 125 300 C 230 300, 330 210, 434 210" />
+    <path d="M 125 300 C 230 300, 330 230, 434 230" />
+    <path d="M 125 300 C 230 300, 330 250, 434 250" />
+    <path d="M 125 300 C 230 300, 330 270, 434 270" />
+    <path d="M 125 300 C 230 300, 330 290, 434 290" />
+    <path d="M 125 300 C 230 300, 330 310, 434 310" />
+    <path d="M 125 300 C 230 300, 330 330, 434 330" />
+    <path d="M 125 300 C 230 300, 330 350, 434 350" />
+    <path d="M 125 300 C 230 300, 330 370, 434 370" />
+    <path d="M 125 300 C 230 300, 330 390, 434 390" />
+    <path d="M 125 300 C 230 300, 330 410, 434 410" />
+    <path d="M 125 328 C 230 328, 330 190, 434 190" />
+    <path d="M 125 328 C 230 328, 330 210, 434 210" />
+    <path d="M 125 328 C 230 328, 330 230, 434 230" />
+    <path d="M 125 328 C 230 328, 330 250, 434 250" />
+    <path d="M 125 328 C 230 328, 330 270, 434 270" />
+    <path d="M 125 328 C 230 328, 330 290, 434 290" />
+    <path d="M 125 328 C 230 328, 330 310, 434 310" />
+    <path d="M 125 328 C 230 328, 330 330, 434 330" />
+    <path d="M 125 328 C 230 328, 330 350, 434 350" />
+    <path d="M 125 328 C 230 328, 330 370, 434 370" />
+    <path d="M 125 328 C 230 328, 330 390, 434 390" />
+    <path d="M 125 328 C 230 328, 330 410, 434 410" />
+  </g>
+
+  <!-- GELU maps each component to one output component without changing width. -->
+  <g class="element-arrow" aria-label="GELU 逐元素变换">
+    <path d="M 466 190 H 734" />
+    <path d="M 466 210 H 734" />
+    <path d="M 466 230 H 734" />
+    <path d="M 466 250 H 734" />
+    <path d="M 466 270 H 734" />
+    <path d="M 466 290 H 734" />
+    <path d="M 466 310 H 734" />
+    <path d="M 466 330 H 734" />
+    <path d="M 466 350 H 734" />
+    <path d="M 466 370 H 734" />
+    <path d="M 466 390 H 734" />
+    <path d="M 466 410 H 734" />
+  </g>
+
+  <!-- Every shown activation component contributes to the shown update components. -->
+  <g class="projection" aria-label="Down Projection 的加权组合">
+    <path d="M 766 190 C 870 190, 970 272, 1075 272" />
+    <path d="M 766 190 C 870 190, 970 300, 1075 300" />
+    <path d="M 766 190 C 870 190, 970 328, 1075 328" />
+    <path d="M 766 210 C 870 210, 970 272, 1075 272" />
+    <path d="M 766 210 C 870 210, 970 300, 1075 300" />
+    <path d="M 766 210 C 870 210, 970 328, 1075 328" />
+    <path d="M 766 230 C 870 230, 970 272, 1075 272" />
+    <path d="M 766 230 C 870 230, 970 300, 1075 300" />
+    <path d="M 766 230 C 870 230, 970 328, 1075 328" />
+    <path d="M 766 250 C 870 250, 970 272, 1075 272" />
+    <path d="M 766 250 C 870 250, 970 300, 1075 300" />
+    <path d="M 766 250 C 870 250, 970 328, 1075 328" />
+    <path d="M 766 270 C 870 270, 970 272, 1075 272" />
+    <path d="M 766 270 C 870 270, 970 300, 1075 300" />
+    <path d="M 766 270 C 870 270, 970 328, 1075 328" />
+    <path d="M 766 290 C 870 290, 970 272, 1075 272" />
+    <path d="M 766 290 C 870 290, 970 300, 1075 300" />
+    <path d="M 766 290 C 870 290, 970 328, 1075 328" />
+    <path d="M 766 310 C 870 310, 970 272, 1075 272" />
+    <path d="M 766 310 C 870 310, 970 300, 1075 300" />
+    <path d="M 766 310 C 870 310, 970 328, 1075 328" />
+    <path d="M 766 330 C 870 330, 970 272, 1075 272" />
+    <path d="M 766 330 C 870 330, 970 300, 1075 300" />
+    <path d="M 766 330 C 870 330, 970 328, 1075 328" />
+    <path d="M 766 350 C 870 350, 970 272, 1075 272" />
+    <path d="M 766 350 C 870 350, 970 300, 1075 300" />
+    <path d="M 766 350 C 870 350, 970 328, 1075 328" />
+    <path d="M 766 370 C 870 370, 970 272, 1075 272" />
+    <path d="M 766 370 C 870 370, 970 300, 1075 300" />
+    <path d="M 766 370 C 870 370, 970 328, 1075 328" />
+    <path d="M 766 390 C 870 390, 970 272, 1075 272" />
+    <path d="M 766 390 C 870 390, 970 300, 1075 300" />
+    <path d="M 766 390 C 870 390, 970 328, 1075 328" />
+    <path d="M 766 410 C 870 410, 970 272, 1075 272" />
+    <path d="M 766 410 C 870 410, 970 300, 1075 300" />
+    <path d="M 766 410 C 870 410, 970 328, 1075 328" />
+  </g>
+
+  <g aria-label="经过 LayerNorm 的 768 维输入，仅示意三个分量">
+    <circle class="vector-node" cx="110" cy="272" r="9" />
+    <circle class="vector-node" cx="110" cy="300" r="9" />
+    <circle class="vector-node" cx="110" cy="328" r="9" />
+  </g>
+  <g aria-label="768 维 MLP 更新，仅示意三个分量">
+    <circle class="vector-node" cx="1090" cy="272" r="9" />
+    <circle class="vector-node" cx="1090" cy="300" r="9" />
+    <circle class="vector-node" cx="1090" cy="328" r="9" />
+  </g>
+
+  <g aria-label="隐藏层激活前的 3072 个中间值，仅示意十二个分量">
+    <circle cx="450" cy="190" r="8" fill="#497fb9" fill-opacity="0.7" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="210" r="8" fill="#497fb9" fill-opacity="0.3" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="230" r="8" fill="#497fb9" fill-opacity="0.4" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="250" r="8" fill="#497fb9" fill-opacity="0.8" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="270" r="8" fill="#497fb9" fill-opacity="0.6" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="290" r="8" fill="#497fb9" fill-opacity="0.5" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="310" r="8" fill="#497fb9" fill-opacity="0.2" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="330" r="8" fill="#497fb9" fill-opacity="1" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="350" r="8" fill="#497fb9" fill-opacity="0.25" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="370" r="8" fill="#497fb9" fill-opacity="0.9" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="390" r="8" fill="#497fb9" fill-opacity="0.65" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="450" cy="410" r="8" fill="#497fb9" fill-opacity="0.35" stroke="#497fb9" stroke-width="1.5" />
+  </g>
+  <g aria-label="隐藏层激活后的 3072 维输出，分量数量保持不变">
+    <circle cx="750" cy="190" r="8" fill="#497fb9" fill-opacity="0.12" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="210" r="8" fill="#497fb9" fill-opacity="0.21" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="230" r="8" fill="#497fb9" fill-opacity="0.15" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="250" r="8" fill="#497fb9" fill-opacity="0.8" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="270" r="8" fill="#497fb9" fill-opacity="0.13" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="290" r="8" fill="#497fb9" fill-opacity="0.4" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="310" r="8" fill="#497fb9" fill-opacity="0.12" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="330" r="8" fill="#497fb9" fill-opacity="1" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="350" r="8" fill="#497fb9" fill-opacity="0.16" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="370" r="8" fill="#497fb9" fill-opacity="0.12" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="390" r="8" fill="#497fb9" fill-opacity="0.62" stroke="#497fb9" stroke-width="1.5" />
+    <circle cx="750" cy="410" r="8" fill="#497fb9" fill-opacity="0.13" stroke="#497fb9" stroke-width="1.5" />
+  </g>
+
+  <text class="data-label" x="110" y="445">归一化输入</text>
+  <text class="dimension" x="110" y="470">768 维</text>
+  <text class="data-label" x="450" y="445">激活前</text>
+  <text class="dimension" x="450" y="470">3072 维</text>
+  <text class="data-label" x="750" y="445">激活后</text>
+  <text class="dimension" x="750" y="470">3072 维</text>
+  <text class="data-label" x="1090" y="445">MLP 更新</text>
+  <text class="dimension" x="1090" y="470">768 维</text>
+</svg>
